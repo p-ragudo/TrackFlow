@@ -1,9 +1,9 @@
-namespace TrackFlow.backend.Models;
+namespace Backend.Models;
 
 public class Expense
 {
     public required int Id { get; set; }
-    public required DateOnly Date { get; set; }
+    public required string Date { get; set; }
     public required string Month { get; set; }
     public required string Day { get; set; }
     public required string Category { get; set; }

@@ -4,7 +4,9 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
-namespace TrackFlow.backend.Services;
+using Backend.Models;
+
+namespace Backend.Services;
 
 public class GoogleSheetsService
 {
@@ -26,16 +28,24 @@ public class GoogleSheetsService
         });
     }
 
-    public async Task AppendExpenseAsync(string category, decimal amount, string description)
+    public async Task AppendExpenseAsync(string sheet, string category, string tag, decimal amount, string? description = null)
     {
-        const string range = "2026!A:D";
+        int nextId = await GetNextIdAsync(sheet + "!K2");
+
+        int targetRow = nextId + 1;
+        string specificRange = $"{sheet}!A{targetRow}:H{targetRow}";
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
         var rowValues = new List<object>
         {
-            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            nextId,
+            today.ToString("yyyy-MM-dd"),
+            today.ToString("MMMM"),
+            today.ToString("dddd"),
             category,
+            tag,
             amount,
-            description
+            description ?? string.Empty
         };
 
         var valueRange = new ValueRange
@@ -43,12 +53,31 @@ public class GoogleSheetsService
             Values = new List<IList<object>> { rowValues }
         };
 
-        AppendRequest? appendRequest = _sheetService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
+        AppendRequest? appendRequest = _sheetService.Spreadsheets.Values.Append(valueRange, _spreadsheetId, specificRange);
 
-        appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
-        appendRequest.InsertDataOption = SpreadsheetsResource.ValuesResource.AppendRequest.InsertDataOptionEnum.INSERTROWS;
+        appendRequest.ValueInputOption = AppendRequest.ValueInputOptionEnum.USERENTERED;
+        appendRequest.InsertDataOption = AppendRequest.InsertDataOptionEnum.OVERWRITE;
 
         AppendValuesResponse response = await appendRequest.ExecuteAsync();
         Console.WriteLine($"Successfully appended row. Updated range: {response.Updates.UpdatedRange}");
+    }
+
+    private async Task<int> GetNextIdAsync(string range)
+    {
+        var cellRequest = _sheetService.Spreadsheets.Values.Get(_spreadsheetId, range);
+        ValueRange cellResponse = await cellRequest.ExecuteAsync();
+
+        int nextId = 1;
+
+        if (cellResponse.Values?.Count > 0)
+        {
+            string? cellValue = cellResponse.Values[0][0]?.ToString();
+            if (int.TryParse(cellValue, out int parsedId))
+            {
+                nextId = parsedId;
+            }
+        }
+
+        return nextId;
     }
 }

@@ -1,4 +1,5 @@
-using TrackFlow.backend.Services;
+using Backend.Dto;
+using Backend.Services;
 
 WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
@@ -6,15 +7,19 @@ builder.Services.AddScoped<GoogleSheetsService>();
 
 WebApplication? app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
-app.MapGet("/addSheetTest", async (GoogleSheetsService googleSheetsService) => {
+app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRequest request) => {
     try
     {
-        await googleSheetsService.AppendExpenseAsync("Testing", 500.00m, "This is a test");
+        await service.AppendExpenseAsync
+        (
+            request.Sheet,
+            request.Category,
+            request.Tag,
+            request.Amount,
+            request.Description
+        );
+
         return Results.Ok("Successfully appended!");
     }
     catch (Exception ex)
