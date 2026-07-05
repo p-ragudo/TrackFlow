@@ -1,9 +1,7 @@
-using TrackFlow.Services;
+using TrackFlow.backend.Services;
 
 WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
-
-builder.Services.AddOpenApi();
 builder.Services.AddScoped<GoogleSheetsService>();
 
 WebApplication? app = builder.Build();
