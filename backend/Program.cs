@@ -8,10 +8,11 @@ builder.Services.AddScoped<GoogleSheetsService>();
 WebApplication? app = builder.Build();
 
 
-app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRequest request) => {
+app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRequest request) =>
+{
     try
     {
-        await service.AppendExpenseAsync
+        bool success = await service.AppendExpenseAsync
         (
             request.Sheet,
             request.Category,
@@ -20,7 +21,43 @@ app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRe
             request.Description
         );
 
-        return Results.Ok("Successfully appended!");
+        if (success)
+        {
+            return Results.Ok("Successfully added new expense!");
+        }
+        else
+        {
+            return Results.Problem("Failed to add new expense.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex);
+        return Results.InternalServerError();
+    }
+});
+
+app.MapPost("/api/templates", async (GoogleSheetsService service, CreateTemplateRequest request) => {
+    try
+    {
+        bool success = await service.AppendTemplateAsync
+        (
+            request.Sheet,
+            request.Name,
+            request.Category,
+            request.Tag,
+            request.Amount,
+            request.Description
+        );
+
+        if (success)
+        {
+            return Results.Ok("Successfully added new template!");
+        }
+        else
+        {
+            return Results.Problem("Failed to add new template.");
+        }
     }
     catch (Exception ex)
     {
