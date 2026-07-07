@@ -10,14 +10,14 @@ builder.Services.AddScoped<GoogleSheetsService>();
 WebApplication? app = builder.Build();
 
 
-app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRequest request) =>
+app.MapPost("/api/expenses", async (GoogleSheetsService service, string spreadsheetId, string sheet, [FromBody] CreateExpenseRequest request) =>
 {
     try
     {
         bool success = await service.AppendExpenseAsync
         (
-            request.SpreadsheetId,
-            request.Sheet,
+            spreadsheetId,
+            sheet,
             request.Category,
             request.Tag,
             request.Amount,
@@ -40,14 +40,14 @@ app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRe
     }
 });
 
-app.MapPost("/api/templates", async (GoogleSheetsService service, CreateTemplateRequest request) =>
+app.MapPost("/api/templates", async (GoogleSheetsService service, string spreadsheetId, string sheet, CreateTemplateRequest request) =>
 {
     try
     {
         bool success = await service.AppendTemplateAsync
         (
-            request.SpreadsheetId,
-            request.Sheet,
+            spreadsheetId,
+            sheet,
             request.Name,
             request.Category,
             request.Tag,
@@ -71,11 +71,11 @@ app.MapPost("/api/templates", async (GoogleSheetsService service, CreateTemplate
     }
 });
 
-app.MapGet("/api/templates", async (GoogleSheetsService service, string spreadsheetId, string range) =>
+app.MapGet("/api/templates", async (GoogleSheetsService service, string spreadsheetId, string sheet) =>
 {
     try
     {
-        var templates = await service.GetTemplatesAsync(spreadsheetId, range);
+        var templates = await service.GetTemplatesAsync(spreadsheetId, sheet);
 
         if (templates == null)
         {
@@ -91,14 +91,14 @@ app.MapGet("/api/templates", async (GoogleSheetsService service, string spreadsh
     }
 });
 
-app.MapPut("/api/templates/{id:int}", async (int id, GoogleSheetsService service, [FromBody] PutTemplate request) =>
+app.MapPut("/api/templates", async (GoogleSheetsService service, string spreadsheetId, string sheet, int id, [FromBody] PutTemplate request) =>
 {
     try
     {
         var success = await service.UpdateTemplateAsync(
+            spreadsheetId,
+            sheet,
             id,
-            request.SpreadsheetId,
-            request.RowRange,
             new Template
             {
                 Id = id,
@@ -122,6 +122,28 @@ app.MapPut("/api/templates/{id:int}", async (int id, GoogleSheetsService service
     catch (Exception ex)
     {
         Console.WriteLine($"Error at endpoint PUT /api/templates: {ex.Message}");
+        return Results.InternalServerError();
+    }
+});
+
+app.MapDelete("/api/templates", async (GoogleSheetsService service, string spreadsheetId, string sheet, int id) =>
+{
+    try
+    {
+        var success = await service.DeleteTemplateByIdAsync(spreadsheetId, sheet, id);
+
+        if (success)
+        {
+            return Results.Ok($"Successfully deleted template with ID {id}");
+        }
+        else
+        {
+            return Results.Problem($"Failed to delete template with ID {id}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error at endpoint DELETE /api/templates: {ex.Message}");
         return Results.InternalServerError();
     }
 });

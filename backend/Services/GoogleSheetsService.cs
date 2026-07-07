@@ -51,14 +51,10 @@ public class GoogleSheetsService
         var cellResponse = await getCellRequest.ExecuteAsync();
 
         if (cellResponse.Values == null || cellResponse.Values.Count != 1)
-        {
             return null;
-        }
 
         if (int.TryParse(cellResponse.Values[0][0]?.ToString(), out int nextRow))
-        {
             return nextRow;
-        }
 
         return null;
     }
@@ -96,26 +92,6 @@ public class GoogleSheetsService
         return templates;
     }
 
-    private static (string LeftPart, string RightPart) SplitSheetRange(string range)
-    {
-        if (string.IsNullOrWhiteSpace(range))
-        {
-            return (string.Empty, string.Empty);
-        }
-
-        int colonIndex = range.IndexOf(':');
-
-        if (colonIndex == -1)
-        {
-            return (range, string.Empty);
-        }
-
-        string leftPart = range.Substring(0, colonIndex);
-        string rightPart = range.Substring(colonIndex);
-
-        return (leftPart, rightPart);
-    }
-
     public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string category, string tag, decimal amount, string? description = null)
     {
         int? nextRow = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!J2");
@@ -142,7 +118,7 @@ public class GoogleSheetsService
 
         var values = new ValueRange
         {
-            Values = new List<IList<object>> { row }
+            Values = [ row ]
         };
 
         try
@@ -198,7 +174,7 @@ public class GoogleSheetsService
 
         var values = new ValueRange
         {
-            Values = new List<IList<object>> { row }
+            Values = [ row ]
         };
 
         try
@@ -222,23 +198,21 @@ public class GoogleSheetsService
         }
     }
 
-    public async Task<List<Template>?> GetTemplatesAsync(string spreadsheetId, string range)
+    public async Task<List<Template>?> GetTemplatesAsync(string spreadsheetId, string sheet)
     {
-        var values = await GetValuesFromRange(spreadsheetId, range);
+        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:F");
 
         if (values == null || values.Count <= 1)
-        {
             return null;
-        }
 
         var templates = MapValuesToTemplate(values);
 
         return templates;
     }
 
-    public async Task<bool> UpdateTemplateAsync(int id, string spreadsheetId, string range, Template updatedTemplate)
+    public async Task<bool> UpdateTemplateAsync(string spreadsheetId, string sheet, int id, Template updatedTemplate)
     {
-        var values = await GetTemplatesAsync(spreadsheetId, range);
+        var values = await GetTemplatesAsync(spreadsheetId, sheet);
 
         if (values == null)
             return false;
@@ -253,8 +227,7 @@ public class GoogleSheetsService
         if (targetRow == -1)
             return false;
 
-        var (LeftPart, RightPart) = SplitSheetRange(range);
-        var specificRowRange = $"{LeftPart}{targetRow}{RightPart}{targetRow}";
+        var specificRowRange = $"{sheet}!A{targetRow}:F{targetRow}";
 
         var row = new List<object>
         {
@@ -268,7 +241,7 @@ public class GoogleSheetsService
 
         var valueRange = new ValueRange
         {
-            Values = [ row ]
+            Values = [row]
         };
 
         try
@@ -287,6 +260,76 @@ public class GoogleSheetsService
         catch (Google.GoogleApiException ex)
         {
             Console.WriteLine($"Failed to update template with ID {id}. Google API error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteTemplateByIdAsync(string spreadsheetId, string sheet, int id)
+    {
+        var templates = await GetTemplatesAsync(spreadsheetId, sheet);
+        if (templates == null || templates.Count == 0)
+            return false;
+
+        int currentSheetRowPosition = -1;
+
+        for (int i = 0; i < templates.Count; i++)
+        {
+            if (templates[i].Id == id)
+            {
+                currentSheetRowPosition = i + 2;
+                break;
+            }
+        }
+
+        if (currentSheetRowPosition == -1)
+        {
+            Console.WriteLine($"Template with ID {id} could not be found in the sheet");
+            return false;
+        }
+
+        int internalGoogleIndex = currentSheetRowPosition - 1;
+
+        var spreadsheetInfo = await _sheetService.Spreadsheets.Get(spreadsheetId).ExecuteAsync();
+
+        var targetSheet = spreadsheetInfo.Sheets
+            .FirstOrDefault(s => s.Properties.Title.Equals("Templates", StringComparison.OrdinalIgnoreCase));
+        if (targetSheet == null)
+        {
+            Console.WriteLine("Could not find sheet 'Templates'");
+            return false;
+        }
+
+        int? sheetId = targetSheet.Properties.SheetId;
+
+        var batchUpdateRequest = new BatchUpdateSpreadsheetRequest
+        {
+            Requests = new List<Request>
+            {
+                new Request
+                {
+                    DeleteDimension = new DeleteDimensionRequest
+                    {
+                        Range = new DimensionRange
+                        {
+                            SheetId = sheetId,
+                            Dimension = "ROWS",
+                            StartIndex = internalGoogleIndex,
+                            EndIndex = internalGoogleIndex + 1
+                        }
+                    }
+                }
+            }
+        };
+
+        try
+        {
+            await _sheetService.Spreadsheets.BatchUpdate(batchUpdateRequest, spreadsheetId).ExecuteAsync();
+            Console.WriteLine($"Successfully deleted Template ID {id} from Row {currentSheetRowPosition} and shifted remaining rows up.");
+            return true;
+        }
+        catch (Google.GoogleApiException ex)
+        {
+            Console.WriteLine($"Google API error during row deletion: {ex.Message}");
             return false;
         }
     }
