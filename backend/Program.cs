@@ -1,5 +1,5 @@
-using Backend.Dto;
-using Backend.Services;
+using backend.Dto;
+using backend.Services;
 
 WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +14,7 @@ app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRe
     {
         bool success = await service.AppendExpenseAsync
         (
+            request.SpreadsheetId,
             request.Sheet,
             request.Category,
             request.Tag,
@@ -32,16 +33,18 @@ app.MapPost("/api/expenses", async (GoogleSheetsService service, CreateExpenseRe
     }
     catch (Exception ex)
     {
-        Console.WriteLine(ex);
+        Console.WriteLine($"Error at endpoint POST /api/expenses: {ex.Message}");
         return Results.InternalServerError();
     }
 });
 
-app.MapPost("/api/templates", async (GoogleSheetsService service, CreateTemplateRequest request) => {
+app.MapPost("/api/templates", async (GoogleSheetsService service, CreateTemplateRequest request) =>
+{
     try
     {
         bool success = await service.AppendTemplateAsync
         (
+            request.SpreadsheetId,
             request.Sheet,
             request.Name,
             request.Category,
@@ -61,7 +64,27 @@ app.MapPost("/api/templates", async (GoogleSheetsService service, CreateTemplate
     }
     catch (Exception ex)
     {
-        Console.WriteLine(ex);
+        Console.WriteLine($"Error at endpoint POST /api/templates: {ex.Message}");
+        return Results.InternalServerError();
+    }
+});
+
+app.MapGet("/api/templates", async (GoogleSheetsService service, string spreadsheetId, string range) =>
+{
+    try
+    {
+        var templates = await service.GetTemplatesAsync(spreadsheetId, range);
+
+        if (templates == null)
+        {
+            return Results.NotFound("Templates could not be found.");
+        }
+
+        return Results.Ok(templates);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error at endpoint GET /api/templates: {ex.Message}");
         return Results.InternalServerError();
     }
 });

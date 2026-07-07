@@ -4,21 +4,17 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
-using Backend.Models;
+using backend.Models;
 
-namespace Backend.Services;
+namespace backend.Services;
 
 public class GoogleSheetsService
 {
-    private readonly string _spreadsheetId;
     private readonly GoogleCredential _credential;
     private readonly SheetsService _sheetService;
 
-    public GoogleSheetsService(IConfiguration configuration)
+    public GoogleSheetsService()
     {
-        _spreadsheetId = configuration["GoogleSheets:SpreadsheetId"]
-            ?? throw new InvalidOperationException("GoogleSheets:SpreadsheetId is missing");
-
         _credential = CredentialFactory.FromFile<ServiceAccountCredential>("google-credentials.json").ToGoogleCredential();
 
         _sheetService = new SheetsService(new BaseClientService.Initializer()
@@ -27,7 +23,7 @@ public class GoogleSheetsService
         });
     }
 
-    private async Task<AppendValuesResponse> AppendAsync(ValueRange values, string spreadsheetId, string range)
+    private async Task<AppendValuesResponse> AppendAsync(string spreadsheetId, string range, ValueRange values)
     {
         AppendRequest? appendRequest = _sheetService.Spreadsheets.Values.Append(values, spreadsheetId, range);
 
@@ -56,9 +52,42 @@ public class GoogleSheetsService
         return null;
     }
 
-    public async Task<bool> AppendExpenseAsync(string sheet, string category, string tag, decimal amount, string? description = null)
+    private async Task<IList<IList<object>>?> GetValuesFromRange(string spreadsheetId, string range)
     {
-        int? nextRow = await GetNextIntFromCellAsync(_spreadsheetId, $"{sheet}!J2");
+        var getCellRequest = _sheetService.Spreadsheets.Values.Get(spreadsheetId, range);
+        var cellResponse = await getCellRequest.ExecuteAsync();
+
+        return cellResponse.Values ?? null;
+    }
+
+    private static List<Template> MapValuesToTemplate(IList<IList<object>> values)
+    {
+        var templates = new List<Template>();
+
+        if (values == null || values.Count <= 1)
+            return templates;
+
+        foreach (var row in values.Skip(1)) // skips header row
+        {
+            if (row.Count == 0) continue;
+            
+            templates.Add(new Template
+            {
+                Id = int.TryParse(row[0].ToString(), out int id) ? id : -1,
+                Name = row[1].ToString() ?? string.Empty,
+                Category = row[2].ToString() ?? string.Empty,
+                Tag = row[3].ToString() ?? string.Empty,
+                Amount = decimal.TryParse(row[4].ToString(), out decimal amount) ? amount : -1,
+                Description = row.Count > 5 ? row[5].ToString() ?? string.Empty : string.Empty
+            });
+        }
+
+        return templates;
+    }
+
+    public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string category, string tag, decimal amount, string? description = null)
+    {
+        int? nextRow = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!J2");
 
         if (nextRow == null)
         {
@@ -87,7 +116,7 @@ public class GoogleSheetsService
 
         try
         {
-            AppendValuesResponse response = await AppendAsync(values, _spreadsheetId, range);
+            AppendValuesResponse response = await AppendAsync(spreadsheetId, range, values);
 
             if (response?.Updates?.UpdatedRows == 1)
             {
@@ -106,9 +135,9 @@ public class GoogleSheetsService
         }
     }
 
-    public async Task<bool> AppendTemplateAsync(string sheet, string name, string category, string tag, decimal amount, string? description = null)
+    public async Task<bool> AppendTemplateAsync(string spreadsheetId, string sheet, string name, string category, string tag, decimal amount, string? description = null)
     {
-        int? nextRow = await GetNextIntFromCellAsync(_spreadsheetId, $"{sheet}!H2");
+        int? nextRow = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!H2");
 
         if (nextRow == null)
         {
@@ -116,7 +145,7 @@ public class GoogleSheetsService
             return false;
         }
 
-        int? nextId = await GetNextIntFromCellAsync(_spreadsheetId, $"{sheet}!I2");
+        int? nextId = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!I2");
 
         if (nextId == null)
         {
@@ -143,7 +172,7 @@ public class GoogleSheetsService
 
         try
         {
-            AppendValuesResponse response = await AppendAsync(values, _spreadsheetId, range);
+            AppendValuesResponse response = await AppendAsync(spreadsheetId, range, values);
 
             if (response?.Updates?.UpdatedRows == 1)
             {
@@ -160,5 +189,19 @@ public class GoogleSheetsService
             Console.WriteLine($"Failed to append template. Google API error: {ex.Message}");
             return false;
         }
+    }
+
+    public async Task<List<Template>?> GetTemplatesAsync(string spreadsheetId, string range)
+    {
+        var values = await GetValuesFromRange(spreadsheetId, range);
+
+        if (values == null || values.Count <= 1)
+        {
+            return null;
+        }
+
+        var templates = MapValuesToTemplate(values);
+
+        return templates;
     }
 }
