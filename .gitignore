@@ -28,3 +28,47 @@ obj/
 # ====================================================================
 .DS_Store
 Thumbs.db
+
+gitignore# ====================================================================
+# React Native / Expo
+# ====================================================================
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Expo native folders (if using prebuild / EAS)
+/android
+/ios
+
+# Metro bundler
+.metro-health-check*
+
+# Native builds
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+*.pem
+
+# Turborepo / monorepo cache (skip if not using)
+.turbo/
+
+# TypeScript
+*.tsbuildinfo
+
+credentials.json

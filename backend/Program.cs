@@ -9,7 +9,6 @@ builder.Services.AddScoped<GoogleSheetsService>();
 
 WebApplication? app = builder.Build();
 
-
 app.MapPost("/api/expenses", async (GoogleSheetsService service, string spreadsheetId, string sheet, [FromBody] CreateExpenseRequest request) =>
 {
     try
