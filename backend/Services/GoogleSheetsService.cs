@@ -5,6 +5,7 @@ using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
 using backend.Models;
+using backend.Dto;
 
 namespace backend.Services;
 
@@ -23,14 +24,24 @@ public class GoogleSheetsService
         });
     }
 
-    private async Task<AppendValuesResponse> AppendAsync(string spreadsheetId, string range, ValueRange values)
+    private async Task<AppendValuesResponse> AppendAsync(string spreadsheetId, string range, ValueRange valueRange)
     {
-        AppendRequest? appendRequest = _sheetService.Spreadsheets.Values.Append(values, spreadsheetId, range);
+        AppendRequest? appendRequest = _sheetService.Spreadsheets.Values.Append(valueRange, spreadsheetId, range);
 
         appendRequest.ValueInputOption = AppendRequest.ValueInputOptionEnum.USERENTERED;
         appendRequest.InsertDataOption = AppendRequest.InsertDataOptionEnum.OVERWRITE;
 
         AppendValuesResponse response = await appendRequest.ExecuteAsync();
+        return response;
+    }
+
+    private async Task<UpdateValuesResponse> UpdateAsync(string spreadsheetId, string range, ValueRange valueRange)
+    {
+        UpdateRequest? updateRequest = _sheetService.Spreadsheets.Values.Update(valueRange, spreadsheetId, range);
+
+        updateRequest.ValueInputOption = UpdateRequest.ValueInputOptionEnum.USERENTERED;
+
+        UpdateValuesResponse response = await updateRequest.ExecuteAsync();
         return response;
     }
 
@@ -70,7 +81,7 @@ public class GoogleSheetsService
         foreach (var row in values.Skip(1)) // skips header row
         {
             if (row.Count == 0) continue;
-            
+
             templates.Add(new Template
             {
                 Id = int.TryParse(row[0].ToString(), out int id) ? id : -1,
@@ -83,6 +94,26 @@ public class GoogleSheetsService
         }
 
         return templates;
+    }
+
+    private static (string LeftPart, string RightPart) SplitSheetRange(string range)
+    {
+        if (string.IsNullOrWhiteSpace(range))
+        {
+            return (string.Empty, string.Empty);
+        }
+
+        int colonIndex = range.IndexOf(':');
+
+        if (colonIndex == -1)
+        {
+            return (range, string.Empty);
+        }
+
+        string leftPart = range.Substring(0, colonIndex);
+        string rightPart = range.Substring(colonIndex);
+
+        return (leftPart, rightPart);
     }
 
     public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string category, string tag, decimal amount, string? description = null)
@@ -203,5 +234,60 @@ public class GoogleSheetsService
         var templates = MapValuesToTemplate(values);
 
         return templates;
+    }
+
+    public async Task<bool> UpdateTemplateAsync(int id, string spreadsheetId, string range, Template updatedTemplate)
+    {
+        var values = await GetTemplatesAsync(spreadsheetId, range);
+
+        if (values == null)
+            return false;
+
+        int targetRow = -1;
+        for (int i = 0; i < values.Count; i++)
+        {
+            if (values[i].Id == id)
+                targetRow = values[i].Id + 1;
+        }
+
+        if (targetRow == -1)
+            return false;
+
+        var (LeftPart, RightPart) = SplitSheetRange(range);
+        var specificRowRange = $"{LeftPart}{targetRow}{RightPart}{targetRow}";
+
+        var row = new List<object>
+        {
+            id,
+            updatedTemplate.Name,
+            updatedTemplate.Category,
+            updatedTemplate.Tag,
+            updatedTemplate.Amount,
+            updatedTemplate.Description
+        };
+
+        var valueRange = new ValueRange
+        {
+            Values = [ row ]
+        };
+
+        try
+        {
+            var response = await UpdateAsync(spreadsheetId, specificRowRange, valueRange);
+
+            if (response?.UpdatedRows == 1)
+            {
+                Console.WriteLine($"Successfully edited template with ID {id}");
+                return true;
+            }
+
+            Console.WriteLine($"Failed to edit template with ID: {id}");
+            return false;
+        }
+        catch (Google.GoogleApiException ex)
+        {
+            Console.WriteLine($"Failed to update template with ID {id}. Google API error: {ex.Message}");
+            return false;
+        }
     }
 }
