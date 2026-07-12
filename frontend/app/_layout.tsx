@@ -5,7 +5,11 @@ export default function RootLayout() {
       <Stack.Screen 
         name="index"
         options={{
-          title: "TrackFlow"
+          title: "",
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: '#f3f4f6'
+          }
         }}
       />
     </Stack>;

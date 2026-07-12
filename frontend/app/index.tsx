@@ -1,19 +1,16 @@
-import { Button } from "@react-navigation/elements";
-import { Text, View } from "react-native";
+
+import { View, StyleSheet } from "react-native";
+import { ApiProvider } from "./context/ApiContext";
+import Home from "./pages/Home";
 
 export default function Index() {
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Let's fucking go bro. Let's goooo. let's fucking gooooo</Text>
-      <Button onPressIn={() => console.log("heheehe")}>
-        Hehe
-      </Button>
-    </View>
+    <ApiProvider baseUrl={`${apiUrl}`}>
+      <View>
+        <Home />
+      </View>
+    </ApiProvider>
   );
 }

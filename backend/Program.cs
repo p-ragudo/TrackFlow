@@ -7,7 +7,20 @@ WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<GoogleSheetsService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAnyOrigin", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 WebApplication? app = builder.Build();
+
+app.UseCors("AllowAnyOrigin");
 
 app.MapPost("/api/expenses", async (GoogleSheetsService service, string spreadsheetId, string sheet, [FromBody] CreateExpenseRequest request) =>
 {
