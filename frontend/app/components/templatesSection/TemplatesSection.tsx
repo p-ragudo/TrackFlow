@@ -22,9 +22,6 @@ export default function TemplatesSection({ templates }: TemplatesSectionProps) {
 
 const styles = StyleSheet.create({
     section: {
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        padding: 20,
-        gap: 20
+        gap: 14
     }
 })
