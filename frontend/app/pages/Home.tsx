@@ -1,4 +1,4 @@
-import React, { act, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import ExpensesSection from '../components/ExpensesSection';
 import TemplatesSection from '../components/templatesSection/TemplatesSection';
@@ -15,6 +15,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
+
 
     useEffect(() => {
         const fetchTemplates = async () => {
