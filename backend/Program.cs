@@ -30,6 +30,7 @@ app.MapPost("/api/expenses", async (GoogleSheetsService service, string spreadsh
         (
             spreadsheetId,
             sheet,
+            request.Name,
             request.Category,
             request.Tag,
             request.Amount,
@@ -48,6 +49,26 @@ app.MapPost("/api/expenses", async (GoogleSheetsService service, string spreadsh
     catch (Exception ex)
     {
         Console.WriteLine($"Error at endpoint POST /api/expenses: {ex.Message}");
+        return Results.InternalServerError();
+    }
+});
+
+app.MapGet("/api/expenses/today", async (GoogleSheetsService service, string spreadsheetId, string sheet) =>
+{
+    try
+    {
+        decimal? todayTotal = await service.GetTodayTotal(spreadsheetId, sheet);
+
+        if (todayTotal == null)
+        {
+            return Results.NotFound("Today's total could not be fetched");
+        }
+
+        return Results.Ok(todayTotal);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error at endpoint GET /api/expenses/today: {ex.Message}");
         return Results.InternalServerError();
     }
 });

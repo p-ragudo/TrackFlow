@@ -24,7 +24,7 @@ export default function ExpensesSection({ totalExpenses }: ExpensesSectionProps)
                 </Text>
             </View>
             <Text style={styles.totalExpensesText}>
-                ₱{totalExpenses}
+                ₱{totalExpenses.toFixed(2)}
             </Text>
         </LinearGradient>
     )

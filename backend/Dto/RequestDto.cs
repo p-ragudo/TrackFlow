@@ -2,6 +2,7 @@ namespace backend.Dto;
 
 public record CreateExpenseRequest
 (
+    string Name,
     string Category,
     string Tag,
     decimal Amount,

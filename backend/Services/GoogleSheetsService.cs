@@ -44,7 +44,7 @@ public class GoogleSheetsService
         return response;
     }
 
-    private async Task<int?> GetNextIntFromCellAsync(string spreadsheetId, string range)
+    private async Task<decimal?> GetNextIntFromCellAsync(string spreadsheetId, string range)
     {
         var getCellRequest = _sheetService.Spreadsheets.Values.Get(spreadsheetId, range);
         var cellResponse = await getCellRequest.ExecuteAsync();
@@ -91,9 +91,13 @@ public class GoogleSheetsService
         return templates;
     }
 
-    public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string category, string tag, decimal amount, string? description = null)
+    public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string name, string category, string tag, decimal amount, string? description = null)
     {
-        int? nextRow = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!J2");
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        string completeSheet = $"{today:yyyy}_{sheet}";
+        Console.WriteLine(completeSheet);
+
+        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!K2");
 
         if (nextRow == null)
         {
@@ -101,14 +105,14 @@ public class GoogleSheetsService
             return false;
         }
 
-        string range = $"{sheet}!A{nextRow}:G{nextRow}";
-        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        string range = $"{completeSheet}!A{nextRow}:H{nextRow}";
 
         var row = new List<object>
         {
             today.ToString("yyyy-MM-dd"),
             today.ToString("MMMM"),
             today.ToString("dddd"),
+            name,
             category,
             tag,
             amount,
@@ -143,7 +147,7 @@ public class GoogleSheetsService
 
     public async Task<bool> AppendTemplateAsync(string spreadsheetId, string sheet, string name, string category, string tag, decimal amount, string? description = null)
     {
-        int? nextRow = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!H2");
+        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!H2");
 
         if (nextRow == null)
         {
@@ -151,7 +155,7 @@ public class GoogleSheetsService
             return false;
         }
 
-        int? nextId = await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!I2");
+        int? nextId = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!I2");
 
         if (nextId == null)
         {
@@ -331,5 +335,15 @@ public class GoogleSheetsService
             Console.WriteLine($"Google API error during row deletion: {ex.Message}");
             return false;
         }
+    }
+
+    public async Task<decimal?> GetTodayTotal(string spreadsheetId, string sheet)
+    {
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        string completeSheet = $"{today:yyyy}_{sheet}";
+
+        decimal? todayTotal = await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!L2");
+
+        return todayTotal;
     }
 }

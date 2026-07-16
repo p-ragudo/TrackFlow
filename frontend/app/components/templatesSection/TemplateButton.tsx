@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, DeviceEventEmitter } from 'react-native';
 import { Template } from '@/app/types/Template';
 import { useApi } from '@/app/context/ApiContext';
 
@@ -8,6 +8,7 @@ interface TemplateContainerProps {
 }
 
 interface ExpensesPayload {
+    name: string,
     category: string,
     tag: string,
     amount: number,
@@ -21,6 +22,7 @@ export default function TemplateButton({template}: TemplateContainerProps) {
     const handlePress = async () => {
         try {
             const payload: ExpensesPayload = {
+                name: template.name,
                 category: template.category,
                 tag: template.tag,
                 amount: template.amount,
@@ -28,13 +30,20 @@ export default function TemplateButton({template}: TemplateContainerProps) {
             }
 
             const response: any = await api.post(
-                `/api/expenses?spreadsheetid=${spreadsheetId}&sheet=2026`,
+                `/api/expenses?spreadsheetid=${spreadsheetId}&sheet=Expenses`,
                 payload
             )
 
             console.log("server response: ", response)
-        } catch (error) {
-            console.error("Failed to add expense using template: ", error)
+
+            DeviceEventEmitter.emit('expenseAdded');
+        } catch (error: any) {
+            console.error("Failed to add expense: ", error);
+
+            if (error.response) {
+                console.log("Error data:", error.response.data);
+                console.log("Error status:", error.response.status);
+            }
         }
     }
 
