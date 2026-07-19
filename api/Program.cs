@@ -18,7 +18,28 @@ builder.Services.AddCors(options =>
 WebApplication? app = builder.Build();
 
 app.UseCors("AllowAnyOrigin");
+
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/health"))
+    {
+        await next();
+        return;
+    }
+
+    if (!context.Request.Headers.TryGetValue("X-Api-Key", out var extractedKey) ||
+        extractedKey != builder.Configuration["ApiKey"])
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Unauthorized");
+        return;
+    }
+
+    await next();
+});
+
 app.MapControllers();
 
 app.Run();
