@@ -6,6 +6,14 @@ import { Template } from '../types/Template';
 import { useApi } from '../context/ApiContext';
 import TabSelector from '../components/TabSelector';
 
+interface TemplatesResponse {
+    templates: Template[]
+}
+
+interface TodayTotalResponse {
+    total: number
+}
+
 export default function Home() {
     const api = useApi();
     const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
@@ -19,8 +27,8 @@ export default function Home() {
 
     const fetchTemplates = async () => {
             try {
-                const data = await api.get<Template[]>(`/api/templates?spreadsheetid=${spreadsheetId}&sheet=templates`);
-                setTemplates(data);
+                const response = await api.get<TemplatesResponse>(`/api/v1/templates?spreadsheetid=${spreadsheetId}&sheet=templates`);
+                setTemplates(response.templates);
             } catch (error) {
                 throw new Error(`Error fetching templates: ${error}`);
             }
@@ -28,8 +36,8 @@ export default function Home() {
 
         const fetchTodayTotal = async () => {
             try {
-                const data = await api.get<number>(`/api/expenses/today?spreadsheetid=${spreadsheetId}&sheet=Expenses`);
-                setTodayTotal(data)
+                const response = await api.get<TodayTotalResponse>(`/api/v1/expenses/today/total?spreadsheetid=${spreadsheetId}&sheet=expenses`);
+                setTodayTotal(response.total)
             } catch (error) {
                 throw new Error(`Error fetching today's total: ${error}`);
             }

@@ -10,9 +10,11 @@ export interface IApiClient {
 // 2. Base API Client class implementing the REST helpers
 class ApiClient implements IApiClient {
   private baseUrl: string;
+  private apiKey: string;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, apiKey: string) {
     this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
   }
 
   // Common request handler to avoid repeating try/catch and header logic
@@ -22,6 +24,7 @@ class ApiClient implements IApiClient {
     // Default headers (e.g., Content-Type, Auth tokens)
     const defaultHeaders = {
       'Content-Type': 'application/json',
+      'X-Api-Key': this.apiKey
       // 'Authorization': `Bearer ${your_token_here}`
     };
 
@@ -87,11 +90,12 @@ const ApiContext = createContext<ApiClient | null>(null);
 interface ApiProviderProps {
   children: ReactNode;
   baseUrl: string;
+  apiKey: string
 }
 
-export const ApiProvider = ({ children, baseUrl }: ApiProviderProps) => {
+export const ApiProvider = ({ children, baseUrl, apiKey }: ApiProviderProps) => {
   // Instantiate the client once
-  const apiClient = useMemo(() => new ApiClient(baseUrl), [baseUrl])
+  const apiClient = useMemo(() => new ApiClient(baseUrl, apiKey), [baseUrl])
 
   return (
     <ApiContext.Provider value={apiClient}>

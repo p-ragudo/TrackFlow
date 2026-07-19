@@ -9,6 +9,7 @@ interface TemplateContainerProps {
 
 interface ExpensesPayload {
     name: string,
+    group: string,
     category: string,
     tag: string,
     amount: number,
@@ -23,6 +24,7 @@ export default function TemplateButton({template}: TemplateContainerProps) {
         try {
             const payload: ExpensesPayload = {
                 name: template.name,
+                group: template.group,
                 category: template.category,
                 tag: template.tag,
                 amount: template.amount,
@@ -30,7 +32,7 @@ export default function TemplateButton({template}: TemplateContainerProps) {
             }
 
             const response: any = await api.post(
-                `/api/expenses?spreadsheetid=${spreadsheetId}&sheet=Expenses`,
+                `/api/v1/expenses?spreadsheetid=${spreadsheetId}&sheet=expenses`,
                 payload
             )
 
@@ -57,6 +59,10 @@ export default function TemplateButton({template}: TemplateContainerProps) {
                 styles.section
             ]}
         >
+            <Text style={styles.groupText}>
+                {template.group}
+            </Text>
+
             <View style={styles.topRow}>
                 <Text style={styles.topRowText}>
                     {template.name}
@@ -69,7 +75,7 @@ export default function TemplateButton({template}: TemplateContainerProps) {
             <Text style={styles.categoryText}>
                 {template.category}
             </Text>
-            <Text style={styles.categoryText}>
+            <Text style={styles.tagText}>
                 {template.tag}
             </Text>
         </Pressable>
@@ -92,7 +98,17 @@ const styles = StyleSheet.create({
         fontWeight: 700,
         fontSize: 18
     },
+    groupText: {
+        fontWeight: 800,
+        fontSize: 12,
+        color: 'gray'
+    },
     categoryText: {
+        fontWeight: 500,
+        fontSize: 12,
+        color: 'gray'
+    },
+    tagText: {
         fontWeight: 500,
         fontSize: 12,
         color: 'gray'
