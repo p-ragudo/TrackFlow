@@ -19,7 +19,7 @@ export default function Home() {
     const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
     const [todayTotal, setTodayTotal] = useState(0)
-    const user = 'User';
+    const user = 'Paolo';
     const [templates, setTemplates] = useState<Template[]>([])
     const [loading, setLoading] = useState(true);
 
