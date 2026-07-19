@@ -4,9 +4,9 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
-using backend.Models;
+using api.Models;
 
-namespace backend.Services;
+namespace api.Services;
 
 public class GoogleSheetsService
 {
@@ -81,47 +81,54 @@ public class GoogleSheetsService
             {
                 Id = int.TryParse(row[0].ToString(), out int id) ? id : -1,
                 Name = row[1].ToString() ?? string.Empty,
-                Category = row[2].ToString() ?? string.Empty,
-                Tag = row[3].ToString() ?? string.Empty,
-                Amount = decimal.TryParse(row[4].ToString(), out decimal amount) ? amount : -1,
-                Description = row.Count > 5 ? row[5].ToString() ?? string.Empty : string.Empty
+                Group = row[2].ToString() ?? string.Empty,
+                Category = row[3].ToString() ?? string.Empty,
+                Tag = row[4].ToString() ?? string.Empty,
+                Amount = decimal.TryParse(row[5].ToString(), out decimal amount) ? amount : -1,
+                Description = row.Count > 6 ? row[6].ToString() ?? string.Empty : string.Empty
             });
         }
 
         return templates;
     }
 
-    public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string name, string category, string tag, decimal amount, string? description = null)
+    public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string name, string group, string category, string tag, decimal amount, string? description = null)
     {
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
         string completeSheet = $"{today:yyyy}_{sheet}";
         Console.WriteLine(completeSheet);
 
-        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!K2");
-
+        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!M2");
         if (nextRow == null)
         {
             Console.WriteLine("Failed to append expense. The next row counter could not be fetched or parsed.");
             return false;
         }
 
-        string range = $"{completeSheet}!A{nextRow}:H{nextRow}";
-
-        var row = new List<object>
+        int? nextId = (int?)await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!N2");
+        if (nextId == null)
         {
-            today.ToString("yyyy-MM-dd"),
-            today.ToString("MMMM"),
-            today.ToString("dddd"),
-            name,
-            category,
-            tag,
-            amount,
-            description ?? string.Empty
+            Console.WriteLine("Failed to append expense. The next id could not be fetched or parsed.");
+            return false;
+        }
+        Console.WriteLine($"\t\tID: {nextId}");
+
+        string range = $"{completeSheet}!A{nextRow}:J{nextRow}";
+
+        var newExpense = new Expense
+        {
+            Id = (int) nextId,
+            Name = name,
+            Group = group,
+            Category = category,
+            Tag = tag,
+            Amount = amount,
+            Description = description ?? string.Empty
         };
 
         var values = new ValueRange
         {
-            Values = [ row ]
+            Values = [ newExpense.ToSpreadsheetRow() ]
         };
 
         try
@@ -145,39 +152,38 @@ public class GoogleSheetsService
         }
     }
 
-    public async Task<bool> AppendTemplateAsync(string spreadsheetId, string sheet, string name, string category, string tag, decimal amount, string? description = null)
+    public async Task<bool> AppendTemplateAsync(string spreadsheetId, string sheet, string name, string group, string category, string tag, decimal amount, string? description = null)
     {
-        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!H2");
-
+        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!I2");
         if (nextRow == null)
         {
             Console.WriteLine("Failed to append template. The next row counter could not be fetched or parsed.");
             return false;
         }
 
-        int? nextId = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!I2");
-
+        int? nextId = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!J2");
         if (nextId == null)
         {
             Console.WriteLine("Failed to append template. The next id counter could not be fetched or parsed.");
             return false;
         }
 
-        string range = $"{sheet}!A{nextRow}:F{nextRow}";
+        string range = $"{sheet}!A{nextRow}:G{nextRow}";
 
-        var row = new List<object>
+        var newTemplate = new Template
         {
-            nextId,
-            name,
-            category,
-            tag,
-            amount,
-            description ?? string.Empty
+            Id = (int)nextId,
+            Name = name,
+            Group = group,
+            Category = category,
+            Tag = tag,
+            Amount = amount,
+            Description = description ?? string.Empty
         };
 
         var values = new ValueRange
         {
-            Values = [ row ]
+            Values = [ newTemplate.ToSpreadsheetRow() ]
         };
 
         try
@@ -203,7 +209,7 @@ public class GoogleSheetsService
 
     public async Task<List<Template>?> GetTemplatesAsync(string spreadsheetId, string sheet)
     {
-        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:F");
+        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:G");
 
         if (values == null || values.Count <= 1)
             return null;
@@ -230,21 +236,22 @@ public class GoogleSheetsService
         if (targetRow == -1)
             return false;
 
-        var specificRowRange = $"{sheet}!A{targetRow}:F{targetRow}";
+        var specificRowRange = $"{sheet}!A{targetRow}:G{targetRow}";
 
-        var row = new List<object>
+        var newTemplate = new Template
         {
-            id,
-            updatedTemplate.Name,
-            updatedTemplate.Category,
-            updatedTemplate.Tag,
-            updatedTemplate.Amount,
-            updatedTemplate.Description
+            Id = id,
+            Name = updatedTemplate.Name,
+            Group = updatedTemplate.Group,
+            Category = updatedTemplate.Category,
+            Tag = updatedTemplate.Tag,
+            Amount = updatedTemplate.Amount,
+            Description = updatedTemplate.Description ?? string.Empty
         };
 
         var valueRange = new ValueRange
         {
-            Values = [row]
+            Values = [newTemplate.ToSpreadsheetRow()]
         };
 
         try
@@ -342,7 +349,7 @@ public class GoogleSheetsService
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
         string completeSheet = $"{today:yyyy}_{sheet}";
 
-        decimal? todayTotal = await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!L2");
+        decimal? todayTotal = await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!O2");
 
         return todayTotal;
     }
