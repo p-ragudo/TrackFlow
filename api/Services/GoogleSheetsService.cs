@@ -92,9 +92,19 @@ public class GoogleSheetsService
         return templates;
     }
 
+    private static DateOnly GetDateLocal()
+    {
+        DateTime utcNow = DateTime.UtcNow;
+
+        TimeZoneInfo targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+        DateTime localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, targetTimeZone);
+
+        return DateOnly.FromDateTime(localDateTime);
+    }
+
     public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string name, string group, string category, string tag, decimal amount, string? description = null)
     {
-        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        DateOnly today = GetDateLocal();
         string completeSheet = $"{today:yyyy}_{sheet}";
         Console.WriteLine(completeSheet);
 
@@ -349,7 +359,7 @@ public class GoogleSheetsService
 
     public async Task<decimal?> GetTodayTotal(string spreadsheetId, string sheet)
     {
-        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        DateOnly today = GetDateLocal();
         string completeSheet = $"{today:yyyy}_{sheet}";
 
         decimal? todayTotal = await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!O2");

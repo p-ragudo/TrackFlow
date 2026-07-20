@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView } from 'react-native';
 import ExpensesSection from '../components/ExpensesSection';
-import TemplatesSection from '../components/templatesSection/TemplatesSection';
+import TemplatesSection from '../components/Templates/TemplatesSection';
 import { Template } from '../types/Template';
 import { useApi } from '../context/ApiContext';
 import TabSelector from '../components/TabSelector';
+import AddButton from '../components/AddFloatingButton/AddButton';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -77,36 +78,40 @@ export default function Home() {
     }, []);
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.home}>
-                <Text style={styles.helloText}>
-                    Hello, {user}
-                </Text>
-
-                <ExpensesSection totalExpenses={todayTotal}/>
-
-                {errors.map((error, index) => (
-                    <Text key={index} style={styles.errorText}>
-                        {error}
+        <View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.home}>
+                    <Text style={styles.helloText}>
+                        Hello, {user}
                     </Text>
-                ))}
 
-                <View style={styles.tabSection}>
-                    <TabSelector 
-                        name='Expenses' 
-                        selected={activeTab === 'expenses'} 
-                        onPress={() => setActiveTab('expenses')} 
-                    />
-                    <TabSelector 
-                        name='Savings' 
-                        selected={activeTab === 'savings'} 
-                        onPress={() => setActiveTab('savings')} 
-                    />
+                    <ExpensesSection totalExpenses={todayTotal}/>
+
+                    {errors.map((error, index) => (
+                        <Text key={index} style={styles.errorText}>
+                            {error}
+                        </Text>
+                    ))}
+
+                    <View style={styles.tabSection}>
+                        <TabSelector 
+                            name='Expenses' 
+                            selected={activeTab === 'expenses'} 
+                            onPress={() => setActiveTab('expenses')} 
+                        />
+                        <TabSelector 
+                            name='Savings' 
+                            selected={activeTab === 'savings'} 
+                            onPress={() => setActiveTab('savings')} 
+                        />
+                    </View>
+
+                    {loading ? <Text>Loading templates...</Text> : <TemplatesSection templates={templates}/>}
                 </View>
+            </ScrollView>
 
-                {loading ? <Text>Loading templates...</Text> : <TemplatesSection templates={templates}/>}
-            </View>
-        </ScrollView>
+            <AddButton />
+        </View>
     )
 }
 
