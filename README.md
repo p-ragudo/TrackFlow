@@ -9,5 +9,5 @@
 ### Tech Stack
 - React Native for mobile client
 - Supabase for authentication and JWT
-- ASP.NET Core for the API and Docker
+- ASP.NET Core and Docker for the API
 - Google Sheets and Google Cloud Platform for access to Google Sheets
