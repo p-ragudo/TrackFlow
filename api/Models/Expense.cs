@@ -2,12 +2,10 @@ namespace api.Models;
 
 public class Expense
 {
-    private readonly DateOnly today = DateOnly.FromDateTime(DateTime.Now);
-
     public required int Id { get; set; }
-    public string Date => today.ToString("yyyy-MM-dd");
-    public string Month => today.ToString("MMMM");
-    public string Day => today.ToString("dddd");
+    public required DateOnly Date { get; set; }
+    public required string Month { get; set; }
+    public required string Day { get; set; }
     public required string Name { get; set; }
     public required string Group { get; set; }
     public required string Category { get; set; }
@@ -20,14 +18,14 @@ public class Expense
         return
         [
             Id,
-            Date,
+            Date.ToString("yyyy-MM-dd"),
             Month,
             Day,
             Name,
             Group,
             Category,
             Tag,
-            (double)Amount,
+            (double) Amount,
             Description ?? string.Empty
         ];
     }

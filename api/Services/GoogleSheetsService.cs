@@ -118,6 +118,9 @@ public class GoogleSheetsService
         var newExpense = new Expense
         {
             Id = (int) nextId,
+            Date = today,
+            Month = today.ToString("MMMM"),
+            Day = today.ToString("dddd"),
             Name = name,
             Group = group,
             Category = category,
