@@ -94,7 +94,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 16,
         backgroundColor: 'white',
-        borderRadius: 20
+
+        borderRadius: 20,
+        borderWidth: 0.1,
+        borderColor: 'gray'
     },
     topRow: {
         flexDirection: 'row',

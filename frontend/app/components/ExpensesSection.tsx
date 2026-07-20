@@ -1,15 +1,16 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, StyleProp, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ExpensesSectionProps {
     totalExpenses: number
+    style?: StyleProp<ViewStyle>
 }
 
-export default function ExpensesSection({ totalExpenses }: ExpensesSectionProps) {
+export default function ExpensesSection({ totalExpenses, style }: ExpensesSectionProps) {
     return (
         <LinearGradient 
-            style={styles.section}
+            style={[styles.section, style]}
             colors={['#96FFA9', '#0BE39E']}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}

@@ -25,6 +25,7 @@ export default function TemplatesSection({ templates }: TemplatesSectionProps) {
 
 const styles = StyleSheet.create({
     section: {
-        gap: 14
+        gap: 14,
+        marginBottom: 100
     }
 })

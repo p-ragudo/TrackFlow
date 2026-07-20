@@ -78,14 +78,19 @@ export default function Home() {
     }, []);
 
     return (
-        <View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.home}>
                     <Text style={styles.helloText}>
                         Hello, {user}
                     </Text>
 
-                    <ExpensesSection totalExpenses={todayTotal}/>
+                    <ExpensesSection 
+                        totalExpenses={todayTotal}
+                        style={styles.expensesSection}
+                    />
 
                     {errors.map((error, index) => (
                         <Text key={index} style={styles.errorText}>
@@ -116,15 +121,21 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        marginTop: 20,
+        flex: 1
+    },
     home: {
         paddingHorizontal: 20,
-        paddingBottom: 45,
         gap: 20
     },
     helloText: {
         fontWeight: 'bold',
-        fontSize: 30,
-        marginBottom: 20
+        fontSize: 24,
+        marginBottom: 24
+    },
+    expensesSection: {
+        marginBottom: 28
     },
     tabSection: {
         flexDirection: 'row',
@@ -132,8 +143,8 @@ const styles = StyleSheet.create({
         gap: 12
     },
     errorText: {
-        color: 'red',        // Plain text color (optional, tweak as needed)
+        color: 'red',
         fontSize: 14,
-        marginBottom: 8,     // Creates the gap between each error message
+        marginBottom: 8,
     }
 })

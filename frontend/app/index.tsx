@@ -1,7 +1,7 @@
-
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { ApiProvider } from "./context/ApiContext";
 import Home from "./pages/Home";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -9,9 +9,15 @@ export default function Index() {
 
   return (
     <ApiProvider baseUrl={`${apiUrl}`} apiKey={`${apiKey}`} >
-      <View>
+      <SafeAreaView style={styles.root}>
         <Home />
-      </View>
+      </SafeAreaView>
     </ApiProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
