@@ -30,7 +30,7 @@ app.Use(async (context, next) =>
     }
 
     if (!context.Request.Headers.TryGetValue("X-Api-Key", out var extractedKey) ||
-        extractedKey != builder.Configuration["ApiKey"])
+        extractedKey != app.Configuration["ApiKey"])
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsync("Unauthorized");
