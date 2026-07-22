@@ -4,10 +4,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface ExpensesSectionProps {
     totalExpenses: number
+    totalSavings?: number
     style?: StyleProp<ViewStyle>
 }
 
-export default function ExpensesSection({ totalExpenses, style }: ExpensesSectionProps) {
+export default function ExpensesSection({ totalExpenses, totalSavings, style }: ExpensesSectionProps) {
     return (
         <LinearGradient 
             style={[styles.section, style]}
@@ -16,17 +17,28 @@ export default function ExpensesSection({ totalExpenses, style }: ExpensesSectio
             end={{ x: 0, y: 1 }}
             locations={[0.4, 1.0]}
         >
-            <View style={styles.expensesTextSection}>
-                <Text style={styles.expensesText}>
-                    Today's Total
-                </Text>
-                <Text style={styles.arrowButton}>
-                    ...
+            <View>
+                <View style={styles.expensesTextSection}>
+                    <Text style={styles.expensesText}>
+                        Today's Total
+                    </Text>
+                    <Text style={styles.arrowButton}>
+                        ...
+                    </Text>
+                </View>
+                <Text style={styles.cashText}>
+                    ₱{totalExpenses.toFixed(2)}
                 </Text>
             </View>
-            <Text style={styles.totalExpensesText}>
-                ₱{totalExpenses.toFixed(2)}
-            </Text>
+
+            {/* <View>
+                <Text style={styles.expensesText}>
+                    Today's Savings
+                </Text>
+                <Text style={styles.cashText}>
+                    ₱{totalSavings ? totalExpenses.toFixed(2) : '0.00'}
+                </Text>
+            </View> */}
         </LinearGradient>
     )
 }
@@ -36,12 +48,12 @@ const styles = StyleSheet.create({
         padding: 26,
         backgroundColor: '#8de28d',
         borderRadius: 14,
-        height: 150,
+        height: 130
     },
     expensesTextSection: {
         flexDirection: "row",
         width: "100%",
-        justifyContent: "space-between",
+        justifyContent: "space-between"
     },
     expensesText: {
         fontSize: 14,
@@ -50,8 +62,9 @@ const styles = StyleSheet.create({
     arrowButton: {
         fontSize: 16,
     },
-    totalExpensesText: {
+    cashText: {
         fontSize: 50,
-        fontWeight: "500"
+        fontWeight: "500",
+        lineHeight: 44
     }
 })
