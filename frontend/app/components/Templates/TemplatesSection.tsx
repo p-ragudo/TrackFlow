@@ -12,12 +12,16 @@ export default function TemplatesSection({ templates }: TemplatesSectionProps) {
     return (
         <ButtonProvider>
             <View style={styles.section}>
-                {templates.map(template => (
-                    <TemplateButton 
-                        key={template.id}
-                        template={template}
-                    />
-                ))}
+                {templates.length > 0 ? (
+                    templates.map(template => (
+                        <TemplateButton 
+                            key={template.id}
+                            template={template}
+                        />
+                    ))
+                ) : (
+                    <Text>No templates available. Add one now.</Text>
+                )}
             </View>
         </ButtonProvider>
     )
