@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView, Pressable } from 'react-native';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import ExpensesSection from '../components/ExpensesSection';
 import TemplatesSection from '../components/Templates/TemplatesSection';
 import { Template } from '../types/Template';
@@ -26,6 +27,14 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
+
+    const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+
+    // Dimming backdrop style
+    const backdropAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: withTiming(isAddMenuOpen ? 1 : 0, { duration: 200 }),
+        pointerEvents: isAddMenuOpen ? ('auto' as const) : ('none' as const),
+    }));
 
     const fetchTemplates = async () => {
             try {
@@ -57,6 +66,8 @@ export default function Home() {
 
                 await fetchTemplates();
                 await fetchTodayTotal();
+
+                setErrors([])
             } catch (error) {
                 const messagePrefix = "Error in fetchData"
                 const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
@@ -115,7 +126,19 @@ export default function Home() {
                 </View>
             </ScrollView>
 
-            <AddButton />
+            {/* Dark Backdrop Overlay */}
+            <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
+                <Pressable 
+                    style={StyleSheet.absoluteFill} 
+                    onPress={() => setIsAddMenuOpen(false)} 
+                />
+            </Animated.View>
+
+            {/* Floating Action Button */}
+            <AddButton 
+                isOpen={isAddMenuOpen} 
+                onToggle={() => setIsAddMenuOpen((prev) => !prev)} 
+            />
         </View>
     )
 }
@@ -146,5 +169,10 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 14,
         marginBottom: 8,
+    },
+    backdrop: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.50)', // Matching gray dim overlay from reference image
+        zIndex: 10,
     }
 })
