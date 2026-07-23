@@ -11,9 +11,11 @@ import Animated, {
 interface AddButtonProps {
     isOpen: boolean
     onToggle: () => void
+    onAddExpensePressed: () => void
+    onAddExpenseTemplatePressed: () => void
 }
 
-export default function AddButton({ isOpen, onToggle }: AddButtonProps) {
+export default function AddButton({ isOpen, onToggle, onAddExpensePressed, onAddExpenseTemplatePressed }: AddButtonProps) {
     const animationProgress = useSharedValue(0);
 
     useEffect(() => {
@@ -52,12 +54,12 @@ export default function AddButton({ isOpen, onToggle }: AddButtonProps) {
                 style={[styles.optionsWrapper, optionsAnimatedStyle]}
             >
                 <FloatingOptionButton 
-                    text="Add custom expense" 
-                    onPress={() => handleOptionPress("Add custom expense")} 
+                    text="Add expense" 
+                    onPress={onAddExpensePressed} 
                 />
                 <FloatingOptionButton 
-                    text="Add Template" 
-                    onPress={() => handleOptionPress("Add Template")} 
+                    text="Add expense template" 
+                    onPress={onAddExpenseTemplatePressed} 
                 />
             </Animated.View>
 

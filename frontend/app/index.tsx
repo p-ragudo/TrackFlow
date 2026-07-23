@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 import { ApiProvider } from "./context/ApiContext";
 import Home from "./pages/Home";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AddPage from "./pages/AddPage";
 
 export default function Index() {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;

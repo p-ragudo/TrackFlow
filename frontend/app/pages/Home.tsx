@@ -7,6 +7,7 @@ import { Template } from '../types/Template';
 import { useApi } from '../context/ApiContext';
 import TabSelector from '../components/TabSelector';
 import AddButton from '../components/AddFloatingButton/AddButton';
+import AddPage from './AddPage';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -15,6 +16,8 @@ interface TemplatesResponse {
 interface TodayTotalResponse {
     total: number
 }
+
+type Pages = 'home' | 'addExpense' | 'addExpenseTemplate'
 
 export default function Home() {
     const api = useApi();
@@ -28,6 +31,8 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
     const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+
+    const [activePage, setActivePage] = useState<Pages>('home')
 
     // Dimming backdrop style
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -93,75 +98,107 @@ export default function Home() {
         setRefreshing(false);
     }, []);
 
-    return (
-        <View style={styles.container}>
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl 
-                        refreshing={refreshing} 
-                        onRefresh={onRefresh} 
-                        tintColor="#000000" // Spinner color on iOS
-                        colors={['#000000']} // Spinner color on Android
-                    />
-                }
-            >
-                <View style={styles.home}>
-                    <Text style={styles.helloText}>
-                        Hello, {user}
-                    </Text>
+    const handleOptionPressed = (activePage: Pages) => {
+        setIsAddMenuOpen(false);
+        setActivePage(activePage);
+    }
 
-                    <ExpensesSection 
-                        totalExpenses={loading ? 0.00 : todayTotal}
-                        style={styles.expensesSection}
-                    />
+    const renderContent = (activePage: string) => {
+        switch (activePage) {
+            case 'home':
+                return (
+                    <View style={styles.container}>
+                        <ScrollView
+                            showsVerticalScrollIndicator={false}
+                            refreshControl={
+                                <RefreshControl 
+                                    refreshing={refreshing} 
+                                    onRefresh={onRefresh} 
+                                    tintColor="#000000" // Spinner color on iOS
+                                    colors={['#000000']} // Spinner color on Android
+                                />
+                            }
+                        >
+                            <View style={styles.mainPage}>
+                                <Text style={styles.helloText}>
+                                    Hello, {user}
+                                </Text>
 
-                    {errors.map((error, index) => (
-                        <Text key={index} style={styles.errorText}>
-                            {error}
-                        </Text>
-                    ))}
+                                <ExpensesSection 
+                                    totalExpenses={loading ? 0.00 : todayTotal}
+                                    style={styles.expensesSection}
+                                />
 
-                    <View style={styles.tabSection}>
-                        <TabSelector 
-                            name='Expenses' 
-                            selected={activeTab === 'expenses'} 
-                            onPress={() => setActiveTab('expenses')} 
-                        />
-                        <TabSelector 
-                            name='Savings' 
-                            selected={activeTab === 'savings'} 
-                            onPress={() => setActiveTab('savings')} 
+                                {errors.map((error, index) => (
+                                    <Text key={index} style={styles.errorText}>
+                                        {error}
+                                    </Text>
+                                ))}
+
+                                <View style={styles.tabSection}>
+                                    <TabSelector 
+                                        name='Expenses' 
+                                        selected={activeTab === 'expenses'} 
+                                        onPress={() => setActiveTab('expenses')} 
+                                    />
+                                    <TabSelector 
+                                        name='Savings' 
+                                        selected={activeTab === 'savings'} 
+                                        onPress={() => setActiveTab('savings')} 
+                                    />
+                                </View>
+
+                                {loading ? <Text>Loading templates...</Text> : <TemplatesSection templates={templates}/>}
+                            </View>
+                        </ScrollView>
+
+                        {/* Dark Backdrop Overlay */}
+                        <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
+                            <Pressable 
+                                style={StyleSheet.absoluteFill} 
+                                onPress={() => setIsAddMenuOpen(false)} 
+                            />
+                        </Animated.View>
+
+                        {/* Floating Action Button */}
+                        <AddButton 
+                            isOpen={isAddMenuOpen} 
+                            onToggle={() => setIsAddMenuOpen((prev) => !prev)}
+                            onAddExpensePressed={() => handleOptionPressed('addExpense')} 
+                            onAddExpenseTemplatePressed={() => handleOptionPressed('addExpenseTemplate')}
                         />
                     </View>
+                )
+            case 'addExpense':
+                return (
+                    <AddPage 
+                        title='Add Expense'
+                        onCancelPressed={() => handleOptionPressed('home')}
+                        onSavePressed={() => handleOptionPressed('home')}
+                    />
+                )
+            case 'addExpenseTemplate':
+                return (
+                    <AddPage 
+                        title='Add Template'
+                        onCancelPressed={() => handleOptionPressed('home')}
+                        onSavePressed={() => handleOptionPressed('home')}
+                    />
+                )
+        }
+    }
 
-                    {loading ? <Text>Loading templates...</Text> : <TemplatesSection templates={templates}/>}
-                </View>
-            </ScrollView>
-
-            {/* Dark Backdrop Overlay */}
-            <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
-                <Pressable 
-                    style={StyleSheet.absoluteFill} 
-                    onPress={() => setIsAddMenuOpen(false)} 
-                />
-            </Animated.View>
-
-            {/* Floating Action Button */}
-            <AddButton 
-                isOpen={isAddMenuOpen} 
-                onToggle={() => setIsAddMenuOpen((prev) => !prev)} 
-            />
-        </View>
+    return (
+        renderContent(activePage)
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 20,
         flex: 1
     },
-    home: {
+    mainPage: {
+        marginTop: 20,
         paddingHorizontal: 20,
         gap: 20
     },
