@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View, Pressable, DeviceEventEmitter } from 'react-native';
+import React, { useRef } from 'react';
+import { StyleSheet, Text, View, Pressable, DeviceEventEmitter, Animated } from 'react-native';
 import { Template } from '@/app/types/Template';
 import { useApi } from '@/app/context/ApiContext';
 import { useGlobalButtons } from './ButtonProvider';
@@ -8,13 +8,13 @@ interface TemplateContainerProps {
     template: Template,
 }
 
-interface ExpensesPayload {
+export interface ExpensePayload {
     name: string,
     group: string,
     category: string,
     tag: string,
     amount: number,
-    description: string | null
+    description: string
 }
 
 export default function TemplateButton({template}: TemplateContainerProps) {
@@ -23,16 +23,37 @@ export default function TemplateButton({template}: TemplateContainerProps) {
 
     const { isAnyButtonBusy, triggerAction } = useGlobalButtons();
 
+    const scaleValue = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+        if (isAnyButtonBusy) return;
+        Animated.spring(scaleValue, {
+        toValue: 0.95, // Clean 5% shrink
+        tension: 300,  // Fast initial press down
+        friction: 20,
+        useNativeDriver: true,
+        }).start();
+    };
+
+    const handlePressOut = () => {
+        Animated.spring(scaleValue, {
+        toValue: 1,    // Crisp spring back
+        tension: 250,
+        friction: 12,  // Slight elastic recoil at the end
+        useNativeDriver: true,
+        }).start();
+    };
+
     const handlePress = async () => {
         triggerAction(async () => {
             try {
-                const payload: ExpensesPayload = {
+                const payload: ExpensePayload = {
                     name: template.name,
                     group: template.group,
                     category: template.category,
                     tag: template.tag,
                     amount: template.amount,
-                    description: null
+                    description: template.description.trim().length === 0 ? '' : template.description
                 }
 
                 const response: any = await api.post(
@@ -55,37 +76,40 @@ export default function TemplateButton({template}: TemplateContainerProps) {
     }
 
     return (
-        <Pressable
-            onPress={handlePress}
-            disabled={isAnyButtonBusy}
-            style={({pressed}) => [
-                {
-                    transform: [{ scale: pressed && isAnyButtonBusy ? 0.98 : 1 }],
-                    opacity: isAnyButtonBusy ? 0.5 : 1
-                },
-                styles.section
-            ]}
-        >
-            <Text style={styles.groupText}>
-                {template.group}
-            </Text>
-
-            <View style={styles.topRow}>
-                <Text style={styles.topRowText}>
-                    {template.name}
+        <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+            <Pressable
+                onPress={handlePress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                unstable_pressDelay={120} // 120ms delay gives the ScrollView time to claim the gesture
+                pressRetentionOffset={{ top: 10, left: 10, right: 10, bottom: 10 }}
+                disabled={isAnyButtonBusy}
+                style={[
+                    styles.section,
+                    { opacity: isAnyButtonBusy ? 0.5 : 1 }
+                ]}
+            >
+                <Text style={styles.groupText}>
+                    {template.group}
                 </Text>
-                <Text style={styles.topRowText}>
-                    ₱{template.amount}
-                </Text>
-            </View>
 
-            <Text style={styles.categoryText}>
-                {template.category}
-            </Text>
-            <Text style={styles.tagText}>
-                {template.tag}
-            </Text>
-        </Pressable>
+                <View style={styles.topRow}>
+                    <Text style={styles.topRowText}>
+                        {template.name}
+                    </Text>
+                    <Text style={styles.topRowText}>
+                        ₱{template.amount}
+                    </Text>
+                </View>
+
+                <Text style={styles.categoryText}>
+                    {template.category}
+                </Text>
+                <Text style={styles.tagText}>
+                    {template.tag}
+                </Text>
+            </Pressable>
+        </Animated.View>
     )
 }
 

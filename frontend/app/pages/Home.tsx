@@ -7,7 +7,7 @@ import { Template } from '../types/Template';
 import { useApi } from '../context/ApiContext';
 import TabSelector from '../components/TabSelector';
 import AddButton from '../components/AddFloatingButton/AddButton';
-import AddPage from './AddPage';
+import AddPage, { AddPageType, FormData } from './AddPage';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -94,6 +94,51 @@ export default function Home() {
         return Array.from(new Set(templates.map((item) => item.tag)));
     }, [templates])
 
+    const handleOnSave = async (data: FormData, type: AddPageType) => {
+        try {
+            const payload = {
+                name: data.name,
+                group: data.group,
+                category: data.category,
+                tag: data.tag,
+                amount: parseFloat(data.amount),
+                description: data.description.trim().length === 0 ? '' : data.description
+            }
+
+            const getEndpoint = () => {
+                switch(type) {
+                    case 'expenses':
+                        return {
+                            endpoint: `/api/v1/expenses?spreadsheetid=${spreadsheetId}&sheet=expenses`,
+                        }
+                    case 'templates':
+                        return {
+                            endpoint: `/api/v1/templates?spreadsheetid=${spreadsheetId}&sheet=templates`,
+                        }
+                    case 'savings':
+                        return{
+                            endpoint: '',
+                        } 
+                }
+            }
+
+            const { endpoint } = getEndpoint()
+            const response: any = await api.post(endpoint, payload)
+
+            console.log("server response: ", response)
+
+            await fetchData()
+            setActivePage('home')
+        } catch (error: any) {
+            console.error("Failed to save : ", error);
+
+            if (error.response) {
+                console.log("Error data:", error.response.data);
+                console.log("Error status:", error.response.status);
+            }
+        }
+    }
+
     useEffect(() => {
         fetchData();
 
@@ -110,9 +155,10 @@ export default function Home() {
         setRefreshing(false);
     }, []);
 
-    const handleOptionPressed = (activePage: Pages) => {
+    const handleOptionPressed = async (activePage: Pages) => {
         setIsAddMenuOpen(false);
         setActivePage(activePage);
+        await fetchData()
     }
 
     const renderContent = (activePage: string) => {
@@ -186,10 +232,11 @@ export default function Home() {
                     <AddPage 
                         title='Add Expense'
                         onCancelPressed={() => handleOptionPressed('home')}
-                        onSavePressed={() => handleOptionPressed('home')}
+                        onSavePressed={handleOnSave}
                         groups={groupOptions}
                         categories={categoryOptions}
                         tags={tagOptions}
+                        type='expenses'
                     />
                 )
             case 'addExpenseTemplate':
@@ -197,10 +244,11 @@ export default function Home() {
                     <AddPage 
                         title='Add Template'
                         onCancelPressed={() => handleOptionPressed('home')}
-                        onSavePressed={() => handleOptionPressed('home')}
+                        onSavePressed={handleOnSave}
                         groups={groupOptions}
                         categories={categoryOptions}
                         tags={tagOptions}
+                        type='templates'
                     />
                 )
         }

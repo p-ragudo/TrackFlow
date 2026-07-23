@@ -35,11 +35,11 @@ export default function CreatableSelect({
 
     const toggleDropdown = () => {
         if (isOpen) {
-        setIsOpen(false);
-        Keyboard.dismiss();
+            setIsOpen(false);
+            Keyboard.dismiss();
         } else {
-        setIsOpen(true);
-        inputRef.current?.focus();
+            setIsOpen(true);
+            inputRef.current?.focus();
         }
     };
 
@@ -56,7 +56,7 @@ export default function CreatableSelect({
                     setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
-                    onBlur={() => setTimeout(() => setIsOpen(false), 200)} // Delay so tap on option registers
+                    onBlur={() => setTimeout(() => setIsOpen(false), 150)}
                     placeholder={placeholder}
                     placeholderTextColor="#A0A0A0"
                 />
@@ -72,22 +72,23 @@ export default function CreatableSelect({
 
             {/* Suggestion Dropdown */}
             {isOpen && filteredOptions.length > 0 && (
-                <View style={styles.dropdown}>
-                    <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 120 }}>
-                        {filteredOptions.map((item, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={styles.dropdownOption}
-                            onPress={() => {
-                            onChangeText(item);
-                            setIsOpen(false);
-                            }}
-                        >
-                            <Text style={styles.dropdownText}>{item}</Text>
-                        </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
+                <ScrollView 
+                    nestedScrollEnabled={true} 
+                    style={styles.dropdown}
+                >
+                    {filteredOptions.map((item, index) => (
+                    <TouchableOpacity
+                        key={index}
+                        style={styles.dropdownOption}
+                        onPress={() => {
+                        onChangeText(item);
+                        setIsOpen(false);
+                        }}
+                    >
+                        <Text style={styles.dropdownText}>{item}</Text>
+                    </TouchableOpacity>
+                    ))}
+                </ScrollView>
             )}
         </View>
     )
@@ -96,7 +97,7 @@ export default function CreatableSelect({
 const styles = StyleSheet.create({
     fieldContainer: {
         position: 'relative',
-        zIndex: 1, // Ensures dropdown overlays items below it
+        zIndex: 1000, // Ensures dropdown overlays items below it
     },
     inputWrapper: {
         position: 'relative',
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 44,
-        borderWidth: 1,
+        borderWidth: 0.5,
         borderColor: '#8E8E8E',
         borderRadius: 8,
         paddingHorizontal: 12,
@@ -120,13 +121,13 @@ const styles = StyleSheet.create({
     },
     arrowContainer: {
         position: 'absolute',
-        top: 15,
-        right: 12,
+        top: 10,
+        right: 14,
         alignItems: 'center',
         justifyContent: 'center',
     },
     arrow: {
-        fontSize: 10,
+        fontSize: 16,
         color: '#666666',
     },
     arrowOpen: {
@@ -141,10 +142,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#CCCCCC',
         borderRadius: 6,
-        maxHeight: 120,
         zIndex: 1000,
-        elevation: 5, // Shadow for Android
-        shadowColor: '#000000', // Shadow for iOS
+        overflow: 'scroll',
+        elevation: 5,
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,

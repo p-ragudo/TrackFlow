@@ -5,5 +5,5 @@ export interface Template {
     category: string,
     tag: string,
     amount: number,
-    description: string | null
+    description: string
 }

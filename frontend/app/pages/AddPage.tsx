@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View, ScrollView } from 'react-native';
 import CreatableSelect from '../components/CreatableSelect';
+import { BouncyPressable } from '../components/BouncyPressable';
 
 interface AddPageProps {
     title: string
     onCancelPressed: () => void
-    onSavePressed: () => void
+    onSavePressed: (data: FormData, type: AddPageType) => void
     groups: string[]
     categories: string[]
     tags: string[]
+    type: AddPageType
 }
+
+export interface FormData {
+    name: string
+    group: string
+    category: string
+    tag: string
+    amount: string
+    description: string
+}
+
+export type AddPageType = 'expenses' | 'templates' | 'savings' 
 
 export default function AddPage({ 
     title, 
@@ -17,9 +30,10 @@ export default function AddPage({
     onSavePressed, 
     groups, 
     categories, 
-    tags 
+    tags ,
+    type
 }: AddPageProps) {
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<FormData>({
         name: '',
         group: '',
         category: '',
@@ -32,14 +46,25 @@ export default function AddPage({
         setForm((prev) => ({...prev, [field]: value}))
     }
 
+    const handleOnSavePressed = () => {
+        onSavePressed(form, type)
+    }
+
     return (
-        <View style={styles.page}>
+        <ScrollView 
+            style={styles.page}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled" // Crucial for inner component touches/scrolls
+            nestedScrollEnabled={true}
+        >
             <View style={styles.header}>
                 <Text style={styles.headerText}>{title}</Text>
-                <Pressable 
+                <BouncyPressable
                     style={styles.cancelButton}
                     onPress={onCancelPressed}
-                >Cancel</Pressable>
+                >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                </BouncyPressable>
             </View>
 
             <View style={[styles.form, styles.formGap]}>
@@ -53,12 +78,12 @@ export default function AddPage({
                 </View>
 
                 <View style={[styles.reverseContainer, styles.formGap]}>
-                    <Pressable 
-                        onPress={onSavePressed}
+                    <BouncyPressable
+                        onPress={handleOnSavePressed}
                         style={styles.saveButton}
                     >
-                        Save
-                    </Pressable>
+                        <Text style={styles.saveButtonText}>Save</Text>
+                    </BouncyPressable>
 
                     <View>
                         <Text style={styles.inputLabel}>Description</Text>
@@ -100,7 +125,7 @@ export default function AddPage({
                     />
                 </View>
             </View>
-        </View>
+        </ScrollView>
     )
 }
 
@@ -108,12 +133,16 @@ const styles = StyleSheet.create({
     page: {
         padding: 20
     },
+    scrollContent: {
+        paddingBottom: 300, // Gives clean space below the last element
+    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
     form: {
-        marginTop: 24
+        marginTop: 24,
+        marginBottom: 100
     },
     formGap: {
         gap: 20
@@ -123,15 +152,17 @@ const styles = StyleSheet.create({
         fontWeight: 500
     },
     cancelButton: {
-        color: 'white',
         backgroundColor: 'black',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 6 
     },
+    cancelButtonText: {
+        color: 'white',
+    },
     input: {
         height: 44,
-        borderWidth: 1,
+        borderWidth: 0.5,
         borderColor: '#8E8E8E',
         borderRadius: 8,
         paddingHorizontal: 12,
@@ -140,18 +171,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
     },
     inputLabel: {
-        fontWeight: 600
+        fontWeight: 600,
+        marginBottom: 6,
     },
     reverseContainer: {
         flexDirection: 'column-reverse'
     },
     saveButton: {
-        color: 'white',
         backgroundColor: 'black',
         alignItems: 'center',
         fontSize: 18,
         paddingVertical: 12,
         borderRadius: 8,
         marginTop: 20
+    },
+    saveButtonText: {
+        color: 'white',
     }
 })
