@@ -6,13 +6,19 @@ interface AddPageProps {
     title: string
     onCancelPressed: () => void
     onSavePressed: () => void
+    groups: string[]
+    categories: string[]
+    tags: string[]
 }
 
-const GROUP_OPTIONS: string[] = ['Personal', 'Work', 'Shared', 'Travel'];
-const CATEGORY_OPTIONS: string[] = ['Food & Dining', 'Transportation', 'Utilities', 'Entertainment'];
-const TAG_OPTIONS: string[] = ['Reimbursable', 'Tax Deductible', 'Urgent', 'Monthly'];
-
-export default function AddPage({ title, onCancelPressed, onSavePressed }: AddPageProps) {
+export default function AddPage({ 
+    title, 
+    onCancelPressed, 
+    onSavePressed, 
+    groups, 
+    categories, 
+    tags 
+}: AddPageProps) {
     const [form, setForm] = useState({
         name: '',
         group: '',
@@ -76,21 +82,21 @@ export default function AddPage({ title, onCancelPressed, onSavePressed }: AddPa
                         label="Tag"
                         value={form.tag}
                         onChangeText={(val: string) => handleChange('tag', val)}
-                        options={TAG_OPTIONS}
+                        options={tags}
                     />
 
                     <CreatableSelect 
                         label="Category"
                         value={form.category}
                         onChangeText={(val: string) => handleChange('category', val)}
-                        options={CATEGORY_OPTIONS}
+                        options={categories}
                     />
 
                     <CreatableSelect 
                         label="Group"
                         value={form.group}
                         onChangeText={(val: string) => handleChange('group', val)}
-                        options={GROUP_OPTIONS}
+                        options={groups}
                     />
                 </View>
             </View>

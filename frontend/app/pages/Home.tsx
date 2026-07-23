@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView, Pressable, RefreshControl } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import ExpensesSection from '../components/ExpensesSection';
@@ -81,6 +81,18 @@ export default function Home() {
             setLoading(false);
         }
     }
+
+    const groupOptions = useMemo<string[]>(() => {
+        return Array.from(new Set(templates.map((item) => item.group)));
+    }, [templates])
+
+    const categoryOptions = useMemo<string[]>(() => {
+        return Array.from(new Set(templates.map((item) => item.category)));
+    }, [templates])
+
+    const tagOptions = useMemo<string[]>(() => {
+        return Array.from(new Set(templates.map((item) => item.tag)));
+    }, [templates])
 
     useEffect(() => {
         fetchData();
@@ -175,6 +187,9 @@ export default function Home() {
                         title='Add Expense'
                         onCancelPressed={() => handleOptionPressed('home')}
                         onSavePressed={() => handleOptionPressed('home')}
+                        groups={groupOptions}
+                        categories={categoryOptions}
+                        tags={tagOptions}
                     />
                 )
             case 'addExpenseTemplate':
@@ -183,6 +198,9 @@ export default function Home() {
                         title='Add Template'
                         onCancelPressed={() => handleOptionPressed('home')}
                         onSavePressed={() => handleOptionPressed('home')}
+                        groups={groupOptions}
+                        categories={categoryOptions}
+                        tags={tagOptions}
                     />
                 )
         }
