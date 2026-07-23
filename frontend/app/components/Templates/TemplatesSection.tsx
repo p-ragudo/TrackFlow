@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Template } from '@/app/types/Template';
 import TemplateButton from './TemplateButton';
 import { ButtonProvider } from './ButtonProvider';

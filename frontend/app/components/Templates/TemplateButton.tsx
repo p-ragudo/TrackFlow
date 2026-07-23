@@ -19,7 +19,7 @@ interface ExpensesPayload {
 
 export default function TemplateButton({template}: TemplateContainerProps) {
     const api = useApi()
-    const spreadsheetId = '1Q7ZgnFMWPAiADQ1lTi7CX4NrDYilpBeSAkJp4ImwL1w'
+    const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
     const { isAnyButtonBusy, triggerAction } = useGlobalButtons();
 

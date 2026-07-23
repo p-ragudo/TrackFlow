@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView, Pressable, RefreshControl } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import ExpensesSection from '../components/ExpensesSection';
 import TemplatesSection from '../components/Templates/TemplatesSection';
@@ -18,17 +18,16 @@ interface TodayTotalResponse {
 
 export default function Home() {
     const api = useApi();
-    const spreadsheetId = '1Q7ZgnFMWPAiADQ1lTi7CX4NrDYilpBeSAkJp4ImwL1w'
+    const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
     const [errors, setErrors] = useState<string[]>([])
     const [todayTotal, setTodayTotal] = useState(0)
-    const user = 'Arman';
+    const user = 'Paolo';
     const [templates, setTemplates] = useState<Template[]>([])
     const [loading, setLoading] = useState(true);
-
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
-
     const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Dimming backdrop style
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -37,46 +36,46 @@ export default function Home() {
     }));
 
     const fetchTemplates = async () => {
-            try {
-                const response = await api.get<TemplatesResponse>(`/api/v1/templates?spreadsheetid=${spreadsheetId}&sheet=templates`);
-                setTemplates(response.templates);
-            } catch (error) {
-                const messagePrefix = "Error in fetchTemplates"
-                const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
-                setErrors((prev) => [...prev, errorMessage])
-                throw new Error(`Error fetching templates: ${error}`);
-            }
+        try {
+            const response = await api.get<TemplatesResponse>(`/api/v1/templates?spreadsheetid=${spreadsheetId}&sheet=templates`);
+            setTemplates(response.templates);
+        } catch (error) {
+            const messagePrefix = "Error in fetchTemplates"
+            const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
+            setErrors((prev) => [...prev, errorMessage])
+            throw new Error(`Error fetching templates: ${error}`);
         }
+    }
 
-        const fetchTodayTotal = async () => {
-            try {
-                const response = await api.get<TodayTotalResponse>(`/api/v1/expenses/today/total?spreadsheetid=${spreadsheetId}&sheet=expenses`);
-                setTodayTotal(response.total)
-            } catch (error) {
-                const messagePrefix = "Error in fetchTodayTotal"
-                const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
-                setErrors((prev) => [...prev, errorMessage])
-                throw new Error(`Error fetching today's total: ${error}`);
-            }
+    const fetchTodayTotal = async () => {
+        try {
+            const response = await api.get<TodayTotalResponse>(`/api/v1/expenses/today/total?spreadsheetid=${spreadsheetId}&sheet=expenses`);
+            setTodayTotal(response.total)
+        } catch (error) {
+            const messagePrefix = "Error in fetchTodayTotal"
+            const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
+            setErrors((prev) => [...prev, errorMessage])
+            throw new Error(`Error fetching today's total: ${error}`);
         }
+    }
 
-        const fetchData = async () => {
-            try {
-                setLoading(true);
+    const fetchData = async () => {
+        try {
+            setLoading(true);
 
-                await fetchTemplates();
-                await fetchTodayTotal();
+            await fetchTemplates();
+            await fetchTodayTotal();
 
-                setErrors([])
-            } catch (error) {
-                const messagePrefix = "Error in fetchData"
-                const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
-                setErrors((prev) => [...prev, errorMessage])
-                console.log("Error in method fetchData:", error);
-            } finally {
-                setLoading(false);
-            }
+            setErrors([])
+        } catch (error) {
+            const messagePrefix = "Error in fetchData"
+            const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
+            setErrors((prev) => [...prev, errorMessage])
+            console.log("Error in method fetchData:", error);
+        } finally {
+            setLoading(false);
         }
+    }
 
     useEffect(() => {
         fetchData();
@@ -88,10 +87,24 @@ export default function Home() {
         return () => subscription.remove();
     }, []);
 
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await fetchData();
+        setRefreshing(false);
+    }, []);
+
     return (
         <View style={styles.container}>
             <ScrollView
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl 
+                        refreshing={refreshing} 
+                        onRefresh={onRefresh} 
+                        tintColor="#000000" // Spinner color on iOS
+                        colors={['#000000']} // Spinner color on Android
+                    />
+                }
             >
                 <View style={styles.home}>
                     <Text style={styles.helloText}>
@@ -99,7 +112,7 @@ export default function Home() {
                     </Text>
 
                     <ExpensesSection 
-                        totalExpenses={todayTotal}
+                        totalExpenses={loading ? 0.00 : todayTotal}
                         style={styles.expensesSection}
                     />
 

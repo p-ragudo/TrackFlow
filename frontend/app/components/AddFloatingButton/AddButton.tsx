@@ -47,8 +47,10 @@ export default function AddButton({ isOpen, onToggle }: AddButtonProps) {
     }
 
     return (
-        <View style={styles.floatingContainer}>
-            <Animated.View style={[styles.optionsWrapper, optionsAnimatedStyle]}>
+        <View style={styles.floatingContainer} pointerEvents="box-none">
+            <Animated.View 
+                style={[styles.optionsWrapper, optionsAnimatedStyle]}
+            >
                 <FloatingOptionButton 
                     text="Add custom expense" 
                     onPress={() => handleOptionPress("Add custom expense")} 
