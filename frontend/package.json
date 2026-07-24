@@ -2,6 +2,11 @@
   "name": "frontend",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "overrides": {
+    "@emnapi/core": "1.11.2",
+    "@emnapi/runtime": "1.11.2",
+    "@emnapi/wasi-threads": "1.2.2"
+  },
   "scripts": {
     "start": "expo start",
     "start:safe": "expo start --port 8089 --clear -c",
