@@ -21,7 +21,7 @@ type Pages = 'home' | 'addExpense' | 'addExpenseTemplate'
 
 export default function Home() {
     const api = useApi();
-    const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
+    const spreadsheetId = '1Q7ZgnFMWPAiADQ1lTi7CX4NrDYilpBeSAkJp4ImwL1w'
 
     const [errors, setErrors] = useState<string[]>([])
     const [todayTotal, setTodayTotal] = useState(0)
