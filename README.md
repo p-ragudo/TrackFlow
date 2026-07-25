@@ -1,6 +1,5 @@
 # TrackFlow
-## A simple template-based expense tracker that saves to a Google sheet for easy data analytics
-## With expense templates, user can add an expense just by tapping it, making everyday recurring expenses easy to track!
+## A simple template-based expense tracker that saves to a Google sheet for easy data analytics. With expense templates, user can add an expense just by tapping it, making everyday recurring expenses easy to track!
 
 ### Expense Tracker Features
 - Expense templates with groups for convenient tracking and grouping
