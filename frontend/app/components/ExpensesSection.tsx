@@ -3,12 +3,13 @@ import { StyleSheet, Text, View, Button, StyleProp, ViewStyle, Pressable } from 
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ExpensesSectionProps {
-    totalExpenses: number
+    text: string
+    totalExpenses: number | string
     style?: StyleProp<ViewStyle>
     seeAllButtonOnPress: () => void
 }
 
-export default function ExpensesSection({ totalExpenses, style, seeAllButtonOnPress }: ExpensesSectionProps) {
+export default function ExpensesSection({ text, totalExpenses, style, seeAllButtonOnPress }: ExpensesSectionProps) {
     return (
         <Pressable onPress={seeAllButtonOnPress}>
             <LinearGradient 
@@ -21,7 +22,7 @@ export default function ExpensesSection({ totalExpenses, style, seeAllButtonOnPr
                 <View>
                     <View style={styles.expensesTextSection}>
                         <Text style={styles.expensesText}>
-                            Today's Total
+                            {text}
                         </Text>
                         <Pressable
                             onPress={seeAllButtonOnPress}
@@ -30,7 +31,11 @@ export default function ExpensesSection({ totalExpenses, style, seeAllButtonOnPr
                         </Pressable>
                     </View>
                     <Text style={styles.cashText}>
-                        ₱{totalExpenses.toFixed(2)}
+                        {
+                            typeof totalExpenses === 'number' && Number.isFinite(totalExpenses)
+                            ? `₱${totalExpenses.toFixed(2)}`
+                            : "..."
+                        }
                     </Text>
                 </View>
 

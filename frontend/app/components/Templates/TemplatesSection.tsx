@@ -10,20 +10,18 @@ interface TemplatesSectionProps {
 
 export default function TemplatesSection({ templates }: TemplatesSectionProps) {
     return (
-        <ButtonProvider>
-            <View style={styles.section}>
-                {templates.length > 0 ? (
-                    templates.map(template => (
-                        <TemplateButton 
-                            key={template.id}
-                            template={template}
-                        />
-                    ))
-                ) : (
-                    <Text>No templates available. Add one now.</Text>
-                )}
-            </View>
-        </ButtonProvider>
+        <View style={styles.section}>
+            {templates.length > 0 ? (
+                templates.map(template => (
+                    <TemplateButton 
+                        key={template.id}
+                        template={template}
+                    />
+                ))
+            ) : (
+                <Text>No templates available. Add one now.</Text>
+            )}
+        </View>
     )
 }
 

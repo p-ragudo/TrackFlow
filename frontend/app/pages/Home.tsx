@@ -10,6 +10,8 @@ import AddButton from '../components/AddFloatingButton/AddButton';
 import AddPage, { AddPageType, FormData } from './AddPage';
 import TodayExpenses from './TodayExpenses';
 import { Expense } from '../types/Expense';
+import LoadingOverlay from '../components/LoadingOverlay';
+import { useGlobalButtons } from '../components/Templates/ButtonProvider';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -53,6 +55,8 @@ export default function Home() {
 
     const user = 'Paolo';
 
+    const { isAnyButtonBusy } = useGlobalButtons()
+
     const [errors, setErrors] = useState<string[]>([])
     const [todayTotal, setTodayTotal] = useState(0)
     const [todayExpenses, setTodayExpenses] = useState<Expense[]>([])
@@ -70,8 +74,8 @@ export default function Home() {
 
     // Dimming backdrop style
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: withTiming(isAddMenuOpen ? 1 : 0, { duration: 200 }),
-        pointerEvents: isAddMenuOpen ? ('auto' as const) : ('none' as const),
+        opacity: withTiming(isAddMenuOpen || isAnyButtonBusy || loading ? 1 : 0, { duration: 200 }),
+        pointerEvents: isAddMenuOpen || isAnyButtonBusy || loading ? ('auto' as const) : ('none' as const),
     }));
 
     const fetchTemplates = async () => {
@@ -114,8 +118,6 @@ export default function Home() {
 
     const fetchIdentifiers = async () => {
         try {
-            setLoading(true)
-
             const response: any = await api.get<IdentifiersResponse>(`/api/v1/identifiers?spreadsheetid=${spreadsheetId}&sheet=identifiers`)
             const { groups, categories, tags } = response.identifiers;
 
@@ -211,9 +213,13 @@ export default function Home() {
     }, []);
 
     const onRefresh = useCallback(async () => {
+        setLoading(true)
         setRefreshing(true);
+
         await fetchData();
+
         setRefreshing(false);
+        setLoading(false)
     }, []);
 
     const handleNavigationButtonPressed = async (activePage: Pages) => {
@@ -247,7 +253,8 @@ export default function Home() {
                                 </Text>
 
                                 <ExpensesSection 
-                                    totalExpenses={loading ? 0.00 : todayTotal}
+                                    text={loading ? "..." : "Today's Total"}
+                                    totalExpenses={loading ? "..." : todayTotal}
                                     style={styles.expensesSection}
                                     seeAllButtonOnPress={handleSeeAllButtonOnPress}
                                 />
@@ -271,7 +278,7 @@ export default function Home() {
                                     />
                                 </View>
 
-                                {loading ? <Text>Loading templates...</Text> : <TemplatesSection templates={templates}/>}
+                                {!loading && <TemplatesSection templates={templates}/>}
                             </View>
                         </ScrollView>
 
@@ -281,15 +288,28 @@ export default function Home() {
                                 style={StyleSheet.absoluteFill} 
                                 onPress={() => setIsAddMenuOpen(false)} 
                             />
+                            { isAnyButtonBusy && 
+                                <View style={styles.loadingContainer}>
+                                    <LoadingOverlay text='Processing...' />
+                                </View>
+                            }
+
+                            { loading && 
+                                <View style={styles.loadingContainer}>
+                                    <LoadingOverlay text='Loading...' />
+                                </View>
+                            }
                         </Animated.View>
 
                         {/* Floating Action Button */}
-                        <AddButton 
-                            isOpen={isAddMenuOpen} 
-                            onToggle={() => setIsAddMenuOpen((prev) => !prev)}
-                            onAddExpensePressed={() => handleNavigationButtonPressed('addExpense')} 
-                            onAddExpenseTemplatePressed={() => handleNavigationButtonPressed('addExpenseTemplate')}
-                        />
+                        { !isAnyButtonBusy &&
+                            <AddButton 
+                                isOpen={isAddMenuOpen} 
+                                onToggle={() => setIsAddMenuOpen((prev) => !prev)}
+                                onAddExpensePressed={() => handleNavigationButtonPressed('addExpense')} 
+                                onAddExpenseTemplatePressed={() => handleNavigationButtonPressed('addExpenseTemplate')}
+                            />
+                        }
                     </View>
                 )
             case 'addExpense':
@@ -322,6 +342,8 @@ export default function Home() {
                         total={todayTotal}
                         onBackButtonPress={() => setActivePage('home')}
                         expenses={todayExpenses}
+                        fetchTodayExpenses={fetchTodayExpenses}
+                        fetchTodayTotal={fetchTodayTotal}
                     />
                 )
         }
@@ -363,5 +385,12 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0, 0, 0, 0.50)', // Matching gray dim overlay from reference image
         zIndex: 10,
+    },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        paddingHorizontal: 20,
+        flex: 1
     }
 })

@@ -3,6 +3,7 @@ import { ApiProvider } from "./context/ApiContext";
 import Home from "./pages/Home";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AddPage from "./pages/AddPage";
+import { ButtonProvider } from "./components/Templates/ButtonProvider";
 
 export default function Index() {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -11,7 +12,9 @@ export default function Index() {
   return (
     <ApiProvider baseUrl={`${apiUrl}`} apiKey={`${apiKey}`} >
       <SafeAreaView style={styles.root}>
-        <Home />
+        <ButtonProvider>
+          <Home />
+        </ButtonProvider>
       </SafeAreaView>
     </ApiProvider>
   );

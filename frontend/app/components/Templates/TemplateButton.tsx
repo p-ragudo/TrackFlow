@@ -84,10 +84,7 @@ export default function TemplateButton({template}: TemplateContainerProps) {
                 unstable_pressDelay={120} // 120ms delay gives the ScrollView time to claim the gesture
                 pressRetentionOffset={{ top: 10, left: 10, right: 10, bottom: 10 }}
                 disabled={isAnyButtonBusy}
-                style={[
-                    styles.section,
-                    { opacity: isAnyButtonBusy ? 0.5 : 1 }
-                ]}
+                style={styles.section}
             >
                 <Text style={styles.groupText}>
                     {template.group}
