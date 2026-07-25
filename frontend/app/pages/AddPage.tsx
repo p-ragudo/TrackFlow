@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, TextInput, View, ScrollView, Pressable } from 'react-native';
 import CreatableSelect from '../components/CreatableSelect';
 import { BouncyPressable } from '../components/BouncyPressable';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import LoadingOverlay from "../components/LoadingOverlay"
 
 interface AddPageProps {
     title: string
     onCancelPressed: () => void
-    onSavePressed: (data: FormData, type: AddPageType) => void
+    onSavePressed: (data: FormData, type: AddPageType) => Promise<void>
     groups: string[]
     categories: string[]
     tags: string[]
@@ -41,91 +43,111 @@ export default function AddPage({
         amount: '',
         description: ''
     })
+    const [isSaving, setIsSaving] = useState(false)
 
     const handleChange = (field: string, value: string) => {
         setForm((prev) => ({...prev, [field]: value}))
     }
 
-    const handleOnSavePressed = () => {
-        onSavePressed(form, type)
+    const handleOnSavePressed = async () => {
+        setIsSaving(true)
+        try {
+            await onSavePressed(form, type)
+        } finally {
+            setIsSaving(false)
+        }
     }
 
+    const backdropAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: withTiming(isSaving ? 1 : 0, { duration: 200 }),
+        pointerEvents: isSaving ? ('auto' as const) : ('none' as const),
+    }));
+
     return (
-        <ScrollView 
-            style={styles.page}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled" // Crucial for inner component touches/scrolls
-            nestedScrollEnabled={true}
-        >
-            <View style={styles.header}>
-                <Text style={styles.headerText}>{title}</Text>
-                <BouncyPressable
-                    style={styles.cancelButton}
-                    onPress={onCancelPressed}
-                >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                </BouncyPressable>
-            </View>
-
-            <View style={[styles.form, styles.formGap]}>
-                <View>
-                    <Text style={styles.inputLabel}>Name</Text>
-                    <TextInput 
-                        style={styles.input}
-                        value={form.name}
-                        onChangeText={(val) => handleChange('name', val)}
-                    />
-                </View>
-
-                <View style={[styles.reverseContainer, styles.formGap]}>
+        <View style={{ flex: 1 }}>
+            <ScrollView 
+                style={styles.page}
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled" // Crucial for inner component touches/scrolls
+                nestedScrollEnabled={true}
+            >
+                <View style={styles.header}>
+                    <Text style={styles.headerText}>{title}</Text>
                     <BouncyPressable
-                        onPress={handleOnSavePressed}
-                        style={styles.saveButton}
+                        style={styles.cancelButton}
+                        onPress={onCancelPressed}
                     >
-                        <Text style={styles.saveButtonText}>Save</Text>
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
                     </BouncyPressable>
-
-                    <View>
-                        <Text style={styles.inputLabel}>Description</Text>
-                        <TextInput 
-                            style={styles.input}
-                            value={form.description}
-                            onChangeText={(val) => handleChange('description', val)}
-                        />
-                    </View>
-
-                    <View>
-                        <Text style={styles.inputLabel}>Amount</Text>
-                        <TextInput 
-                            style={styles.input}
-                            value={form.amount}
-                            onChangeText={(val) => handleChange('amount', val)}
-                        />
-                    </View>
-
-                    <CreatableSelect 
-                        label="Tag"
-                        value={form.tag}
-                        onChangeText={(val: string) => handleChange('tag', val)}
-                        options={tags}
-                    />
-
-                    <CreatableSelect 
-                        label="Category"
-                        value={form.category}
-                        onChangeText={(val: string) => handleChange('category', val)}
-                        options={categories}
-                    />
-
-                    <CreatableSelect 
-                        label="Group"
-                        value={form.group}
-                        onChangeText={(val: string) => handleChange('group', val)}
-                        options={groups}
-                    />
                 </View>
-            </View>
-        </ScrollView>
+
+                <View style={[styles.form, styles.formGap]}>
+                    <View>
+                        <Text style={styles.inputLabel}>Name</Text>
+                        <TextInput 
+                            style={styles.input}
+                            value={form.name}
+                            onChangeText={(val) => handleChange('name', val)}
+                        />
+                    </View>
+
+                    <View style={[styles.reverseContainer, styles.formGap]}>
+                        <BouncyPressable
+                            onPress={handleOnSavePressed}
+                            style={styles.saveButton}
+                        >
+                            <Text style={styles.saveButtonText}>Save</Text>
+                        </BouncyPressable>
+
+                        <View>
+                            <Text style={styles.inputLabel}>Description</Text>
+                            <TextInput 
+                                style={styles.input}
+                                value={form.description}
+                                onChangeText={(val) => handleChange('description', val)}
+                            />
+                        </View>
+
+                        <View>
+                            <Text style={styles.inputLabel}>Amount</Text>
+                            <TextInput 
+                                style={styles.input}
+                                value={form.amount}
+                                onChangeText={(val) => handleChange('amount', val)}
+                            />
+                        </View>
+
+                        <CreatableSelect 
+                            label="Tag"
+                            value={form.tag}
+                            onChangeText={(val: string) => handleChange('tag', val)}
+                            options={tags}
+                        />
+
+                        <CreatableSelect 
+                            label="Category"
+                            value={form.category}
+                            onChangeText={(val: string) => handleChange('category', val)}
+                            options={categories}
+                        />
+
+                        <CreatableSelect 
+                            label="Group"
+                            value={form.group}
+                            onChangeText={(val: string) => handleChange('group', val)}
+                            options={groups}
+                        />
+                    </View>
+                </View>
+            </ScrollView>
+
+            <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
+                <Pressable style={StyleSheet.absoluteFill} />
+                <View style={styles.loadingContainer}>
+                    <LoadingOverlay text='Processing...' />
+                </View>
+            </Animated.View>
+        </View>
     )
 }
 
@@ -162,7 +184,7 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 44,
-        borderWidth: 0.5,
+        borderWidth: 0.2,
         borderColor: '#8E8E8E',
         borderRadius: 8,
         paddingHorizontal: 12,
@@ -187,5 +209,18 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: 'white',
+    },
+    backdrop: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.50)',
+        zIndex: 10,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    loadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        paddingHorizontal: 20
     }
 })

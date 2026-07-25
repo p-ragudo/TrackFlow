@@ -108,6 +108,13 @@ export default function TemplateButton({template}: TemplateContainerProps) {
                 <Text style={styles.tagText}>
                     {template.tag}
                 </Text>
+
+                <Text style={[
+                    template.description.trim() ? styles.descriptionText: styles.noDescriptionText,
+                    {marginTop: 12}
+                ]}>
+                    {template.description.trim() ? template.description : 'No description'}
+                </Text>
             </Pressable>
         </Animated.View>
     )
@@ -144,6 +151,16 @@ const styles = StyleSheet.create({
     },
     tagText: {
         fontWeight: 500,
+        fontSize: 12,
+        color: 'gray'
+    },
+    descriptionText: {
+        fontWeight: 500,
+        fontSize: 12,
+        color: 'gray'
+    },
+    noDescriptionText: {
+        fontWeight: 300,
         fontSize: 12,
         color: 'gray'
     }

@@ -72,7 +72,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 30
+        marginTop: 30,
+        marginBottom: 8
     },
     totalText: {
         fontWeight: 600,

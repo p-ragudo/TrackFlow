@@ -10,38 +10,40 @@ interface ExpensesSectionProps {
 
 export default function ExpensesSection({ totalExpenses, style, seeAllButtonOnPress }: ExpensesSectionProps) {
     return (
-        <LinearGradient 
-            style={[styles.section, style]}
-            colors={['#96FFA9', '#0BE39E']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            locations={[0.4, 1.0]}
-        >
-            <View>
-                <View style={styles.expensesTextSection}>
-                    <Text style={styles.expensesText}>
-                        Today's Total
+        <Pressable onPress={seeAllButtonOnPress}>
+            <LinearGradient 
+                style={[styles.section, style]}
+                colors={['#96FFA9', '#0BE39E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                locations={[0.4, 1.0]}
+            >
+                <View>
+                    <View style={styles.expensesTextSection}>
+                        <Text style={styles.expensesText}>
+                            Today's Total
+                        </Text>
+                        <Pressable
+                            onPress={seeAllButtonOnPress}
+                        >
+                            <Text style={styles.seeAllText}>See all</Text>
+                        </Pressable>
+                    </View>
+                    <Text style={styles.cashText}>
+                        ₱{totalExpenses.toFixed(2)}
                     </Text>
-                    <Pressable
-                        onPress={seeAllButtonOnPress}
-                    >
-                        <Text style={styles.seeAllText}>See all</Text>
-                    </Pressable>
                 </View>
-                <Text style={styles.cashText}>
-                    ₱{totalExpenses.toFixed(2)}
-                </Text>
-            </View>
 
-            {/* <View>
-                <Text style={styles.expensesText}>
-                    Today's Savings
-                </Text>
-                <Text style={styles.cashText}>
-                    ₱{totalSavings ? totalExpenses.toFixed(2) : '0.00'}
-                </Text>
-            </View> */}
-        </LinearGradient>
+                {/* <View>
+                    <Text style={styles.expensesText}>
+                        Today's Savings
+                    </Text>
+                    <Text style={styles.cashText}>
+                        ₱{totalSavings ? totalExpenses.toFixed(2) : '0.00'}
+                    </Text>
+                </View> */}
+            </LinearGradient>
+        </Pressable>
     )
 }
 
