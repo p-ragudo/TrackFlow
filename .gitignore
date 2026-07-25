@@ -1,9 +1,15 @@
 # ====================================================================
-# TrackFlow Project Specific Secrets
+# Project Specific Secrets & Credentials
 # ====================================================================
 google-credentials.json
+credentials.json
 appsettings.json
 appsettings.Development.json
+
+# Environment variables (Ignores all .env variations BUT preserves .env.example)
+.env
+.env.*
+!.env.example
 
 # ====================================================================
 # .NET Build Artifacts & Caches
@@ -21,16 +27,9 @@ obj/
 .vs/
 .vscode/
 !.vscode/extensions.json
-*.tar.gz
 
 # ====================================================================
-# Operating System Files
-# ====================================================================
-.DS_Store
-Thumbs.db
-
-gitignore# ====================================================================
-# React Native / Expo
+# React Native / Expo / Node
 # ====================================================================
 node_modules/
 .expo/
@@ -38,37 +37,33 @@ node_modules/
 dist/
 web-build/
 
-# Expo native folders (if using prebuild / EAS)
-/android
-/ios
+# Expo native generated folders
+android/
+ios/
 
 # Metro bundler
 .metro-health-check*
 
-# Native builds
+# Native keys & certificates
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-
-# Env files
-.env
-.env.local
-.env.*.local
+*.pem
 
 # Debug logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
-*.pem
-
-# Turborepo / monorepo cache (skip if not using)
+# TypeScript & Build Caches
+*.tsbuildinfo
 .turbo/
 
-# TypeScript
-*.tsbuildinfo
-
-credentials.json
+# ====================================================================
+# Operating System & Archives
+# ====================================================================
+.DS_Store
+Thumbs.db
+*.tar.gz

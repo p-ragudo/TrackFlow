@@ -1,13 +1,13 @@
 # TrackFlow
-## A simple expense tracker that saves to a Google sheet for easy data analytics
+## A simple template-based expense tracker that saves to a Google sheet for easy data analytics
+## With expense templates, user can add an expense just by tapping it, making everyday recurring expenses easy to track!
 
 ### Expense Tracker Features
-- Expense and savings templates for convenient tracking
-- Group expenses and savings
+- Expense templates with groups for convenient tracking and grouping
 - Records save to a google sheet for later data analytics which users can setup and customize
 
 ### Tech Stack
-- React Native for mobile client
-- Supabase for authentication and JWT
-- ASP.NET Core and Docker for the API
-- Google Sheets and Google Cloud Platform for access to Google Sheets
+- .NET and Docker for the API
+- React Native + Typescript for the mobile client
+- Google Sheets and Google Cloud Platform for Google Sheets access (no OAuth2)
+- Render for deployment, and cron-job for uptime
