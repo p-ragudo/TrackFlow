@@ -123,11 +123,11 @@ const styles = StyleSheet.create({
     },
     totalText: {
         fontWeight: 600,
-        fontSize: 20
+        fontSize: 18
     },
     totalCashText: {
         fontWeight: 600,
-        fontSize: 36
+        fontSize: 24
     },
     expensesContainer: {
         gap: 14,

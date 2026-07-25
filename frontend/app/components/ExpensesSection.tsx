@@ -4,12 +4,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface ExpensesSectionProps {
     text: string
+    seeAllText: string
     totalExpenses: number | string
     style?: StyleProp<ViewStyle>
     seeAllButtonOnPress: () => void
 }
 
-export default function ExpensesSection({ text, totalExpenses, style, seeAllButtonOnPress }: ExpensesSectionProps) {
+export default function ExpensesSection({ text, totalExpenses, seeAllText, style, seeAllButtonOnPress }: ExpensesSectionProps) {
     return (
         <Pressable onPress={seeAllButtonOnPress}>
             <LinearGradient 
@@ -27,7 +28,7 @@ export default function ExpensesSection({ text, totalExpenses, style, seeAllButt
                         <Pressable
                             onPress={seeAllButtonOnPress}
                         >
-                            <Text style={styles.seeAllText}>See all</Text>
+                            <Text style={styles.seeAllText}>{seeAllText}</Text>
                         </Pressable>
                     </View>
                     <Text style={styles.cashText}>

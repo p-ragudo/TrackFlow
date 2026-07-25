@@ -253,7 +253,8 @@ export default function Home() {
                                 </Text>
 
                                 <ExpensesSection 
-                                    text={loading ? "..." : "Today's Total"}
+                                    text={loading ? "" : "Today's Total"}
+                                    seeAllText={loading ? "" : "See All"}
                                     totalExpenses={loading ? "..." : todayTotal}
                                     style={styles.expensesSection}
                                     seeAllButtonOnPress={handleSeeAllButtonOnPress}
