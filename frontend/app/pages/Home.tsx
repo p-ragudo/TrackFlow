@@ -8,6 +8,8 @@ import { useApi } from '../context/ApiContext';
 import TabSelector from '../components/TabSelector';
 import AddButton from '../components/AddFloatingButton/AddButton';
 import AddPage, { AddPageType, FormData } from './AddPage';
+import TodayExpenses from './TodayExpenses';
+import { Expense } from '../types/Expense';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -17,21 +19,52 @@ interface TodayTotalResponse {
     total: number
 }
 
-type Pages = 'home' | 'addExpense' | 'addExpenseTemplate'
+interface Identifiers {
+  groups: string[]
+  categories: string[]
+  tags: string[]
+}
+
+interface IdentifiersResponse {
+  identifiers: Identifiers
+}
+
+interface TodayExpenseItem {
+  id: number;
+  month: string;
+  day: string;
+  name: string;
+  group: string;
+  category: string;
+  tag: string;
+  amount: number;
+  description: string;
+}
+
+interface TodayExpensesResponse {
+  expenses: TodayExpenseItem[];
+}
+
+type Pages = 'home' | 'addExpense' | 'addExpenseTemplate' | 'todayExpenses'
 
 export default function Home() {
     const api = useApi();
     const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
-    const user = 'Paolo' ;
+    const user = 'Paolo';
 
     const [errors, setErrors] = useState<string[]>([])
     const [todayTotal, setTodayTotal] = useState(0)
+    const [todayExpenses, setTodayExpenses] = useState<Expense[]>([])
     const [templates, setTemplates] = useState<Template[]>([])
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
     const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+
+    const [groups, setGroups] = useState<string[]>([])
+    const [categories, setCategories] = useState<string[]>([])
+    const [tags, setTags] = useState<string[]>([])
 
     const [activePage, setActivePage] = useState<Pages>('home')
 
@@ -65,12 +98,48 @@ export default function Home() {
         }
     }
 
+    const fetchTodayExpenses = async () => {
+        try {
+            const response = await api.get<TodayExpensesResponse>(`/api/v1/expenses/today?spreadsheetid=${spreadsheetId}&sheet=expensestoday`);
+            const { expenses } = response
+
+            setTodayExpenses(expenses)
+        } catch (error) {
+            const messagePrefix = "Error in fetchTodayExpenses"
+            const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
+            setErrors((prev) => [...prev, errorMessage])
+            throw new Error(`Error fetching today's expenses: ${error}`);
+        }
+    }
+
+    const fetchIdentifiers = async () => {
+        try {
+            setLoading(true)
+
+            const response: any = await api.get<IdentifiersResponse>(`/api/v1/identifiers?spreadsheetid=${spreadsheetId}&sheet=identifiers`)
+            const { groups, categories, tags } = response.identifiers;
+
+            setGroups(groups.filter(Boolean))
+            setCategories(categories.filter(Boolean))
+            setTags(tags.filter(Boolean))
+        } catch (error) {
+            const messagePrefix = "Error in handleFetchIdentifiers"
+            const errorMessage = error instanceof Error ? `${messagePrefix} ${error.message}` : String(error);
+            setErrors((prev) => [...prev, errorMessage])
+            console.log("Error in method handleFetchIdentifiers:", error);
+        }
+    }
+
     const fetchData = async () => {
         try {
             setLoading(true);
 
-            await fetchTemplates();
-            await fetchTodayTotal();
+            await Promise.all([
+                fetchTemplates(),
+                fetchTodayTotal(),
+                fetchTodayExpenses(),
+                fetchIdentifiers(),
+            ]);
 
             setErrors([])
         } catch (error) {
@@ -82,18 +151,6 @@ export default function Home() {
             setLoading(false);
         }
     }
-
-    const groupOptions = useMemo<string[]>(() => {
-        return Array.from(new Set(templates.map((item) => item.group)));
-    }, [templates])
-
-    const categoryOptions = useMemo<string[]>(() => {
-        return Array.from(new Set(templates.map((item) => item.category)));
-    }, [templates])
-
-    const tagOptions = useMemo<string[]>(() => {
-        return Array.from(new Set(templates.map((item) => item.tag)));
-    }, [templates])
 
     const handleOnSave = async (data: FormData, type: AddPageType) => {
         try {
@@ -143,8 +200,11 @@ export default function Home() {
     useEffect(() => {
         fetchData();
 
-        const subscription = DeviceEventEmitter.addListener('expenseAdded', () => {
-            fetchTodayTotal();
+        const subscription = DeviceEventEmitter.addListener('expenseAdded', async () => {
+            await Promise.all([
+                fetchTodayTotal(),
+                fetchTodayExpenses()
+            ]);
         })
 
         return () => subscription.remove();
@@ -156,10 +216,13 @@ export default function Home() {
         setRefreshing(false);
     }, []);
 
-    const handleOptionPressed = async (activePage: Pages) => {
+    const handleNavigationButtonPressed = async (activePage: Pages) => {
         setIsAddMenuOpen(false);
         setActivePage(activePage);
-        await fetchData()
+    }
+
+    const handleSeeAllButtonOnPress = () => {
+        setActivePage('todayExpenses')
     }
 
     const renderContent = (activePage: string) => {
@@ -186,6 +249,7 @@ export default function Home() {
                                 <ExpensesSection 
                                     totalExpenses={loading ? 0.00 : todayTotal}
                                     style={styles.expensesSection}
+                                    seeAllButtonOnPress={handleSeeAllButtonOnPress}
                                 />
 
                                 {errors.map((error, index) => (
@@ -223,8 +287,8 @@ export default function Home() {
                         <AddButton 
                             isOpen={isAddMenuOpen} 
                             onToggle={() => setIsAddMenuOpen((prev) => !prev)}
-                            onAddExpensePressed={() => handleOptionPressed('addExpense')} 
-                            onAddExpenseTemplatePressed={() => handleOptionPressed('addExpenseTemplate')}
+                            onAddExpensePressed={() => handleNavigationButtonPressed('addExpense')} 
+                            onAddExpenseTemplatePressed={() => handleNavigationButtonPressed('addExpenseTemplate')}
                         />
                     </View>
                 )
@@ -232,11 +296,11 @@ export default function Home() {
                 return (
                     <AddPage 
                         title='Add Expense'
-                        onCancelPressed={() => handleOptionPressed('home')}
+                        onCancelPressed={() => setActivePage('home')}
                         onSavePressed={handleOnSave}
-                        groups={groupOptions}
-                        categories={categoryOptions}
-                        tags={tagOptions}
+                        groups={groups}
+                        categories={categories}
+                        tags={tags}
                         type='expenses'
                     />
                 )
@@ -244,12 +308,20 @@ export default function Home() {
                 return (
                     <AddPage 
                         title='Add Template'
-                        onCancelPressed={() => handleOptionPressed('home')}
+                        onCancelPressed={() => setActivePage('home')}
                         onSavePressed={handleOnSave}
-                        groups={groupOptions}
-                        categories={categoryOptions}
-                        tags={tagOptions}
+                        groups={groups}
+                        categories={categories}
+                        tags={tags}
                         type='templates'
+                    />
+                )
+            case 'todayExpenses':
+                return (
+                    <TodayExpenses
+                        total={todayTotal}
+                        onBackButtonPress={() => setActivePage('home')}
+                        expenses={todayExpenses}
                     />
                 )
         }

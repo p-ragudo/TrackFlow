@@ -1,14 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, Button, StyleProp, ViewStyle, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ExpensesSectionProps {
     totalExpenses: number
-    totalSavings?: number
     style?: StyleProp<ViewStyle>
+    seeAllButtonOnPress: () => void
 }
 
-export default function ExpensesSection({ totalExpenses, totalSavings, style }: ExpensesSectionProps) {
+export default function ExpensesSection({ totalExpenses, style, seeAllButtonOnPress }: ExpensesSectionProps) {
     return (
         <LinearGradient 
             style={[styles.section, style]}
@@ -22,9 +22,11 @@ export default function ExpensesSection({ totalExpenses, totalSavings, style }: 
                     <Text style={styles.expensesText}>
                         Today's Total
                     </Text>
-                    <Text style={styles.arrowButton}>
-                        ...
-                    </Text>
+                    <Pressable
+                        onPress={seeAllButtonOnPress}
+                    >
+                        <Text style={styles.seeAllText}>See all</Text>
+                    </Pressable>
                 </View>
                 <Text style={styles.cashText}>
                     ₱{totalExpenses.toFixed(2)}
@@ -59,8 +61,10 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 600
     },
-    arrowButton: {
-        fontSize: 16,
+    seeAllText: {
+        fontSize: 12,
+        fontWeight: 800,
+        color: 'dark-green'
     },
     cashText: {
         fontSize: 50,

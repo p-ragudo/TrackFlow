@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, TextInput, View, ScrollView } from 'react-native';
 import CreatableSelect from '../components/CreatableSelect';
 import { BouncyPressable } from '../components/BouncyPressable';
 
