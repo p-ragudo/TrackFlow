@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 
 interface CreatableSelectProps {
@@ -52,8 +50,8 @@ export default function CreatableSelect({
                     style={styles.input}
                     value={value}
                     onChangeText={(text) => {
-                    onChangeText(text);
-                    setIsOpen(true);
+                        onChangeText(text);
+                        setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
                     onBlur={() => setTimeout(() => setIsOpen(false), 150)}
@@ -73,6 +71,7 @@ export default function CreatableSelect({
             {/* Suggestion Dropdown */}
             {isOpen && filteredOptions.length > 0 && (
                 <ScrollView 
+                    keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true} 
                     style={styles.dropdown}
                 >
@@ -81,8 +80,8 @@ export default function CreatableSelect({
                         key={index}
                         style={styles.dropdownOption}
                         onPress={() => {
-                        onChangeText(item);
-                        setIsOpen(false);
+                            onChangeText(item);
+                            setIsOpen(false);
                         }}
                     >
                         <Text style={styles.dropdownText}>{item}</Text>

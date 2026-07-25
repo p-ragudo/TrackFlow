@@ -1,6 +1,7 @@
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 using api.Dto;
+using api.Models;
 
 namespace api.Controllers;
 
@@ -30,13 +31,37 @@ public class ExpensesController : ControllerBase
                 return NotFound("Today's total could not be fetched");
             }
 
-            return Ok(new { total = todayTotal});
+            return Ok(new { total = todayTotal });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error at endpoint GET /api/expenses/today/total: {ex.Message}");
             return StatusCode(500, "An unexpected error occurred while processing your request.");
+        }
     }
+
+    [HttpGet("today")]
+    public async Task<IActionResult> GetTodayExpenses(
+        [FromQuery] string spreadsheetId,
+        [FromQuery] string sheet
+    )
+    {
+        try
+        {
+            List<TodayExpenseItemResponse>? expenses = await _googleSheetsService.GetTodayExpensesAsync(spreadsheetId, sheet);
+
+            if (expenses == null)
+            {
+                return NotFound("Today's expenses could not be fetched");
+            }
+
+            return Ok(new { expenses });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error at endpoint GET /api/expenses/today: {ex.Message}");
+            return StatusCode(500, "An unexpected error occurred while processing your request.");
+        }
     }
 
     [HttpPost]

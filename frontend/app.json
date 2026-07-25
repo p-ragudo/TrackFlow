@@ -34,8 +34,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "edcb0f96-1ab3-4720-8797-5c2c6ab30842"
+        "projectId": "e422aecb-ccef-41e7-bec3-f1ba069a3547"
       }
-    }
+    },
+    "owner": "icspks3"
   }
 }

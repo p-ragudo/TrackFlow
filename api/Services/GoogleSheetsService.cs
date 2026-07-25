@@ -5,6 +5,7 @@ using Google.Apis.Sheets.v4.Data;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
 using api.Models;
+using api.Dto;
 
 namespace api.Services;
 
@@ -66,6 +67,34 @@ public class GoogleSheetsService
         return cellResponse.Values ?? null;
     }
 
+    private static List<TodayExpenseItemResponse> MapValuesToExpense(IList<IList<object>> values)
+    {
+        var expenses = new List<TodayExpenseItemResponse>();
+
+        if (values == null || values.Count <= 1)
+            return expenses;
+
+        foreach (var row in values.Skip(1)) // skips header row
+        {
+            if (row.Count == 0) continue;
+
+            expenses.Add(new TodayExpenseItemResponse
+            (
+                int.TryParse(row[0].ToString(), out int id) ? id : -1,
+                row[1].ToString() ?? string.Empty,
+                row[2].ToString() ?? string.Empty,
+                row[3].ToString() ?? string.Empty,
+                row[4].ToString() ?? string.Empty,
+                row[5].ToString() ?? string.Empty,
+                row[6].ToString() ?? string.Empty,
+                decimal.TryParse(row[7].ToString(), out decimal amount) ? amount : -1,
+                row.Count > 8 ? row[8].ToString() ?? string.Empty : string.Empty
+            ));
+        }
+
+        return expenses;
+    }
+
     private static List<Template> MapValuesToTemplate(IList<IList<object>> values)
     {
         var templates = new List<Template>();
@@ -92,6 +121,25 @@ public class GoogleSheetsService
         return templates;
     }
 
+    private static Identifiers MapValuesToIdentifiers(IList<IList<object>> values)
+    {
+        var identifiers = new Identifiers();
+
+        if (values == null || values.Count <= 1)
+            return identifiers;
+
+        foreach (var row in values.Skip(1))
+        {
+            if (row.Count == 0) continue;
+
+            identifiers.Groups.Add(row[0].ToString() ?? string.Empty);
+            identifiers.Categories.Add(row[1].ToString() ?? string.Empty);
+            identifiers.Tags.Add(row[2].ToString() ?? string.Empty);
+        }
+
+        return identifiers;
+    }
+
     private static DateOnly GetDateLocal()
     {
         DateTime utcNow = DateTime.UtcNow;
@@ -108,7 +156,7 @@ public class GoogleSheetsService
         string completeSheet = $"{today:yyyy}_{sheet}";
         Console.WriteLine(completeSheet);
 
-        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!M2");
+        int? nextRow = (int?)await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!M2");
         if (nextRow == null)
         {
             Console.WriteLine("Failed to append expense. The next row counter could not be fetched or parsed.");
@@ -127,7 +175,7 @@ public class GoogleSheetsService
 
         var newExpense = new Expense
         {
-            Id = (int) nextId,
+            Id = (int)nextId,
             Date = today,
             Month = today.ToString("MMMM"),
             Day = today.ToString("dddd"),
@@ -141,7 +189,7 @@ public class GoogleSheetsService
 
         var values = new ValueRange
         {
-            Values = [ newExpense.ToSpreadsheetRow() ]
+            Values = [newExpense.ToSpreadsheetRow()]
         };
 
         try
@@ -230,6 +278,42 @@ public class GoogleSheetsService
         var templates = MapValuesToTemplate(values);
 
         return templates;
+    }
+
+    public async Task<List<TodayExpenseItemResponse>?> GetTodayExpensesAsync(string spreadsheetId, string sheet)
+    {
+        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:I");
+
+        if (values == null)
+        {
+            return null;
+        }
+        else if (values.Count < 1)
+        {
+            return [];
+        }
+
+        var expenses = MapValuesToExpense(values);
+
+        return expenses;
+    }
+
+    public async Task<Identifiers?> GetIdentifiersAsync(string spreadsheetId, string sheet)
+    {
+        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:C");
+
+        if (values == null)
+        {
+            return null;
+        }
+        else if (values.Count < 1)
+        {
+            return new Identifiers();
+        }
+
+        var identifiers = MapValuesToIdentifiers(values);
+
+        return identifiers;
     }
 
     public async Task<bool> UpdateTemplateAsync(string spreadsheetId, string sheet, int id, Template updatedTemplate)
