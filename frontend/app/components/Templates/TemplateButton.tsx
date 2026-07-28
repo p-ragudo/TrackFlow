@@ -5,6 +5,7 @@ import { useApi } from '@/app/context/ApiContext';
 import { useGlobalButtons } from './ButtonProvider';
 
 interface TemplateContainerProps {
+    spreadsheetId: string
     template: Template,
 }
 
@@ -17,9 +18,8 @@ export interface ExpensePayload {
     description: string
 }
 
-export default function TemplateButton({template}: TemplateContainerProps) {
+export default function TemplateButton({ spreadsheetId, template }: TemplateContainerProps) {
     const api = useApi()
-    const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
     const { isAnyButtonBusy, triggerAction } = useGlobalButtons();
 

@@ -13,6 +13,10 @@ import { Expense } from '../types/Expense';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useGlobalButtons } from '../components/Templates/ButtonProvider';
 
+interface HomeProps {
+    spreadsheetId: string | undefined
+}
+
 interface TemplatesResponse {
     templates: Template[]
 }
@@ -47,13 +51,20 @@ interface TodayExpensesResponse {
   expenses: TodayExpenseItem[];
 }
 
+interface BootstrapResponse {
+    templates: Template[]
+    todayTotal: number
+    todayExpenses: TodayExpenseItem[]
+    identifiers: Identifiers
+    name: string
+}
+
 type Pages = 'home' | 'addExpense' | 'addExpenseTemplate' | 'todayExpenses'
 
-export default function Home() {
+export default function Home({ spreadsheetId }: HomeProps) {
     const api = useApi();
-    const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
-    const user = 'Paolo';
+    const [user, setUser] = useState("");
 
     const { isAnyButtonBusy } = useGlobalButtons()
 
@@ -136,12 +147,35 @@ export default function Home() {
         try {
             setLoading(true);
 
-            await Promise.all([
-                fetchTemplates(),
-                fetchTodayTotal(),
-                fetchTodayExpenses(),
-                fetchIdentifiers(),
-            ]);
+            const payload = {
+                templateSheet: "templates",
+                expensesSheet: "expenses",
+                todayExpensesSheet: "expensesToday",
+                identifiersSheet: "identifiers",
+                nameSheet: "dashboard"
+            }
+            
+            const url = process.env.EXPO_PUBLIC_API_URL
+            console.log(`${url}/api/v1/bootstrap?spreadsheetid=${spreadsheetId}`)
+            const response: BootstrapResponse = await api.post(`/api/v1/bootstrap?spreadsheetid=${spreadsheetId}`, payload)
+
+            const {
+                templates,
+                todayTotal,
+                todayExpenses,
+                identifiers,
+                name
+            } = response
+
+            setTemplates(templates)
+            setTodayTotal(todayTotal)
+            setTodayExpenses(todayExpenses)
+
+            setGroups(identifiers.groups.filter(Boolean))
+            setCategories(identifiers.categories.filter(Boolean))
+            setTags(identifiers.tags.filter(Boolean))
+
+            setUser(name)
 
             setErrors([])
         } catch (error) {
@@ -279,7 +313,7 @@ export default function Home() {
                                     />
                                 </View>
 
-                                {!loading && <TemplatesSection templates={templates}/>}
+                                {!loading && <TemplatesSection spreadsheetId={spreadsheetId} templates={templates}/>}
                             </View>
                         </ScrollView>
 
@@ -307,8 +341,14 @@ export default function Home() {
                             <AddButton 
                                 isOpen={isAddMenuOpen} 
                                 onToggle={() => setIsAddMenuOpen((prev) => !prev)}
-                                onAddExpensePressed={() => handleNavigationButtonPressed('addExpense')} 
-                                onAddExpenseTemplatePressed={() => handleNavigationButtonPressed('addExpenseTemplate')}
+                                onAddExpensePressed={() => {
+                                    setIsAddMenuOpen(false)
+                                    handleNavigationButtonPressed('addExpense')
+                                }} 
+                                onAddExpenseTemplatePressed={() => {
+                                    setIsAddMenuOpen(false)
+                                    handleNavigationButtonPressed('addExpenseTemplate')
+                                }}
                             />
                         }
                     </View>

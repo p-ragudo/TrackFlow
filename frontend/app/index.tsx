@@ -8,12 +8,13 @@ import { ButtonProvider } from "./components/Templates/ButtonProvider";
 export default function Index() {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
   const apiKey = process.env.EXPO_PUBLIC_API_KEY;
+  const spreadsheetId = process.env.EXPO_PUBLIC_SPREADSHEET_ID
 
   return (
     <ApiProvider baseUrl={`${apiUrl}`} apiKey={`${apiKey}`} >
       <SafeAreaView style={styles.root}>
         <ButtonProvider>
-          <Home />
+          <Home spreadsheetId={spreadsheetId}/>
         </ButtonProvider>
       </SafeAreaView>
     </ApiProvider>
