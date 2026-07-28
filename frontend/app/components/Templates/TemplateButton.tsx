@@ -3,9 +3,9 @@ import { StyleSheet, Text, View, Pressable, DeviceEventEmitter, Animated } from 
 import { Template } from '@/app/types/Template';
 import { useApi } from '@/app/context/ApiContext';
 import { useGlobalButtons } from './ButtonProvider';
+import { useTestUser } from '@/app/context/TestUserContext';
 
 interface TemplateContainerProps {
-    spreadsheetId: string | undefined
     template: Template,
 }
 
@@ -18,9 +18,10 @@ export interface ExpensePayload {
     description: string
 }
 
-export default function TemplateButton({ spreadsheetId, template }: TemplateContainerProps) {
-    const api = useApi()
+export default function TemplateButton({ template }: TemplateContainerProps) {
+    const { activeSpreadsheetId } = useTestUser()
 
+    const api = useApi()
     const { isAnyButtonBusy, triggerAction } = useGlobalButtons();
 
     const scaleValue = useRef(new Animated.Value(1)).current;
@@ -57,11 +58,9 @@ export default function TemplateButton({ spreadsheetId, template }: TemplateCont
                 }
 
                 const response: any = await api.post(
-                    `/api/v1/expenses?spreadsheetid=${spreadsheetId}&sheet=expenses`,
+                    `/api/v1/expenses?spreadsheetid=${activeSpreadsheetId}&sheet=expenses`,
                     payload
                 )
-
-                console.log("server response: ", response)
 
                 DeviceEventEmitter.emit('expenseAdded');
             } catch (error: any) {

@@ -4,18 +4,16 @@ import { Template } from '@/app/types/Template';
 import TemplateButton from './TemplateButton';
 
 interface TemplatesSectionProps {
-    spreadsheetId: string | undefined,
     templates: Template[]
 }
 
-export default function TemplatesSection({ spreadsheetId, templates }: TemplatesSectionProps) {
+export default function TemplatesSection({ templates }: TemplatesSectionProps) {
     return (
         <View style={styles.section}>
             {templates.length > 0 ? (
                 templates.map(template => (
                     <TemplateButton 
                         key={template.id}
-                        spreadsheetId={spreadsheetId}
                         template={template}
                     />
                 ))

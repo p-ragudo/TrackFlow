@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View, Text, DeviceEventEmitter, ScrollView, Pressable, RefreshControl } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import ExpensesSection from '../components/ExpensesSection';
@@ -12,10 +12,7 @@ import TodayExpenses from './TodayExpenses';
 import { Expense } from '../types/Expense';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useGlobalButtons } from '../components/Templates/ButtonProvider';
-
-interface HomeProps {
-    spreadsheetId: string | undefined
-}
+import { useTestUser } from '../context/TestUserContext';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -61,8 +58,11 @@ interface BootstrapResponse {
 
 type Pages = 'home' | 'addExpense' | 'addExpenseTemplate' | 'todayExpenses'
 
-export default function Home({ spreadsheetId }: HomeProps) {
+export default function Home() {
+    const { isForTestUser, activeSpreadsheetId } = useTestUser()
+
     const api = useApi();
+    const spreadsheetId = activeSpreadsheetId
 
     const [user, setUser] = useState("");
 
@@ -244,7 +244,7 @@ export default function Home({ spreadsheetId }: HomeProps) {
         })
 
         return () => subscription.remove();
-    }, []);
+    }, [spreadsheetId]);
 
     const onRefresh = useCallback(async () => {
         setLoading(true)
@@ -300,20 +300,23 @@ export default function Home({ spreadsheetId }: HomeProps) {
                                     </Text>
                                 ))}
 
-                                <View style={styles.tabSection}>
-                                    <TabSelector 
-                                        name={!loading ? 'Expenses' : ''}
-                                        selected={activeTab === 'expenses'} 
-                                        onPress={() => setActiveTab('expenses')} 
-                                    />
-                                    <TabSelector 
-                                        name={!loading ? 'Savings' : ''} 
-                                        selected={activeTab === 'savings'} 
-                                        onPress={() => setActiveTab('savings')} 
-                                    />
-                                </View>
+                                { isForTestUser
+                                    ? <Text style={styles.testUserTabTitle}>Names</Text>
+                                    : <View style={styles.tabSection}>
+                                        <TabSelector 
+                                            name={!loading ? 'Expenses' : ''}
+                                            selected={activeTab === 'expenses'} 
+                                            onPress={() => setActiveTab('expenses')} 
+                                        />
+                                        <TabSelector 
+                                            name={!loading ? 'Savings' : ''} 
+                                            selected={activeTab === 'savings'} 
+                                            onPress={() => setActiveTab('savings')} 
+                                        />
+                                    </View>
+                                }
 
-                                {!loading && <TemplatesSection spreadsheetId={spreadsheetId} templates={templates}/>}
+                                {!loading && <TemplatesSection templates={templates}/>}
                             </View>
                         </ScrollView>
 
@@ -433,5 +436,9 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 20,
         flex: 1
+    },
+    testUserTabTitle: {
+        fontWeight: 'bold',
+        fontSize: 24
     }
 })
