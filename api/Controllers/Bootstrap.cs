@@ -15,7 +15,7 @@ public class BootstrapController : ControllerBase
         _googleSheetsService = googleSheetsService;
     }
 
-    [HttpGet]
+    [HttpPost]
     public async Task<IActionResult> GetBootstrap(
         [FromQuery] string spreadsheetId,
         [FromBody] BootstrapRequest request
