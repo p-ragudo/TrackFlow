@@ -54,7 +54,7 @@ export default function AddPage({
 
     const handleOnSavePressed = async () => {
         Keyboard.dismiss()
-        
+
         setIsSaving(true)
         try {
             await onSavePressed(form, type)
@@ -78,12 +78,6 @@ export default function AddPage({
             >
                 <View style={styles.header}>
                     <Text style={styles.headerText}>{title}</Text>
-                    <BouncyPressable
-                        style={styles.cancelButton}
-                        onPress={onCancelPressed}
-                    >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                    </BouncyPressable>
                 </View>
 
                 <View style={[styles.form, styles.formGap]}>
@@ -97,12 +91,21 @@ export default function AddPage({
                     </View>
 
                     <View style={[styles.reverseContainer, styles.formGap]}>
-                        <BouncyPressable
-                            onPress={handleOnSavePressed}
-                            style={styles.saveButton}
-                        >
-                            <Text style={styles.saveButtonText}>Save</Text>
-                        </BouncyPressable>
+                        <View style={styles.buttonsContainer}>
+                            <BouncyPressable
+                                onPress={onCancelPressed}
+                                style={[styles.saveButton, {backgroundColor: isForTestUser ? 'red' : 'black'}]}
+                            >
+                                <Text style={styles.saveButtonText}>Cancel</Text>
+                            </BouncyPressable>
+
+                            <BouncyPressable
+                                onPress={handleOnSavePressed}
+                                style={[styles.saveButton, {backgroundColor: 'black'}]}
+                            >
+                                <Text style={styles.saveButtonText}>Save</Text>
+                            </BouncyPressable>
+                        </View>
 
                         <View>
                             <Text style={styles.inputLabel}>Description</Text>
@@ -122,26 +125,32 @@ export default function AddPage({
                             />
                         </View>
 
-                        <CreatableSelect 
-                            label="Tag"
-                            value={form.tag}
-                            onChangeText={(val: string) => handleChange('tag', val)}
-                            options={tags}
-                        />
+                        { !isForTestUser &&
+                            <CreatableSelect 
+                                label="Tag"
+                                value={form.tag}
+                                onChangeText={(val: string) => handleChange('tag', val)}
+                                options={tags}
+                            />
+                        }
 
-                        <CreatableSelect 
-                            label="Category"
-                            value={form.category}
-                            onChangeText={(val: string) => handleChange('category', val)}
-                            options={categories}
-                        />
+                        { !isForTestUser && 
+                            <CreatableSelect 
+                                label="Category"
+                                value={form.category}
+                                onChangeText={(val: string) => handleChange('category', val)}
+                                options={categories}
+                            />
+                        }
 
-                        <CreatableSelect 
-                            label="Group"
-                            value={form.group}
-                            onChangeText={(val: string) => handleChange('group', val)}
-                            options={groups}
-                        />
+                        { !isForTestUser &&
+                            <CreatableSelect 
+                                label="Group"
+                                value={form.group}
+                                onChangeText={(val: string) => handleChange('group', val)}
+                                options={groups}
+                            />
+                        }
                     </View>
                 </View>
             </ScrollView>
@@ -205,12 +214,10 @@ const styles = StyleSheet.create({
         flexDirection: 'column-reverse'
     },
     saveButton: {
-        backgroundColor: 'black',
         alignItems: 'center',
         fontSize: 18,
         paddingVertical: 12,
         borderRadius: 8,
-        marginTop: 20
     },
     saveButtonText: {
         color: 'white',
@@ -227,5 +234,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         paddingHorizontal: 20
+    },
+    buttonsContainer: {
+        marginTop: 20,
+        gap: 10
     }
 })

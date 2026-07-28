@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
 
-const TEST_SPREADSHEET_ID = ""
+const TEST_SPREADSHEET_ID = process.env.EXPO_PUBLIC_TEST_USER_SPREADSHEET_ID || ""
 const PROD_SPREADSHEET_ID = process.env.EXPO_PUBLIC_SPREADSHEET_ID || ""
 
 interface TestUserContextType {

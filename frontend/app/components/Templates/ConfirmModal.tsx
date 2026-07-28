@@ -131,13 +131,6 @@ export default function ConfirmModal({
                                 <View style={[styles.reverseContainer, styles.formGap]}>
                                     <View style={styles.buttonContainer}>
                                         <BouncyPressable
-                                            onPress={handleOnSavePressed}
-                                            style={[styles.saveButton, {backgroundColor: 'black'}]}
-                                        >
-                                            <Text style={styles.saveButtonText}>Save</Text>
-                                        </BouncyPressable>
-
-                                        <BouncyPressable
                                             onPress={() => {
                                                 Keyboard.dismiss()
                                                 setModalVisible(false)
@@ -145,6 +138,13 @@ export default function ConfirmModal({
                                             style={[styles.saveButton, {backgroundColor: isForTestUser ? 'red' : 'black'}]}
                                         >
                                             <Text style={styles.saveButtonText}>Cancel</Text>
+                                        </BouncyPressable>
+
+                                        <BouncyPressable
+                                            onPress={handleOnSavePressed}
+                                            style={[styles.saveButton, {backgroundColor: 'black'}]}
+                                        >
+                                            <Text style={styles.saveButtonText}>Save</Text>
                                         </BouncyPressable>
                                     </View>
             
@@ -166,26 +166,32 @@ export default function ConfirmModal({
                                         />
                                     </View>
             
-                                    <CreatableSelect 
-                                        label="Tag"
-                                        value={form.tag}
-                                        onChangeText={(val: string) => handleChange('tag', val)}
-                                        options={tags}
-                                    />
+                                    { !isForTestUser &&
+                                        <CreatableSelect 
+                                            label="Tag"
+                                            value={form.tag}
+                                            onChangeText={(val: string) => handleChange('tag', val)}
+                                            options={tags}
+                                        />
+                                    }
 
-                                    <CreatableSelect 
-                                        label="Category"
-                                        value={form.category}
-                                        onChangeText={(val: string) => handleChange('category', val)}
-                                        options={categories}
-                                    />
+                                    { !isForTestUser &&
+                                        <CreatableSelect 
+                                            label="Category"
+                                            value={form.category}
+                                            onChangeText={(val: string) => handleChange('category', val)}
+                                            options={categories}
+                                        />
+                                    }
 
-                                    <CreatableSelect 
-                                        label="Group"
-                                        value={form.group}
-                                        onChangeText={(val: string) => handleChange('group', val)}
-                                        options={groups}
-                                    />
+                                    { !isForTestUser &&
+                                        <CreatableSelect 
+                                            label="Group"
+                                            value={form.group}
+                                            onChangeText={(val: string) => handleChange('group', val)}
+                                            options={groups}
+                                        />
+                                    }
                                 </View>
                             </View>
                         </View>

@@ -30,7 +30,7 @@ export default function TemplatesSection({ templates, setActiveTemplate, setModa
 
 const styles = StyleSheet.create({
     section: {
-        gap: 14,
+        gap: 10,
         marginBottom: 100
     }
 })

@@ -7,6 +7,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from "react-native-reanimated";
+import { useTestUser } from "@/app/context/TestUserContext";
 
 interface AddButtonProps {
     isOpen: boolean
@@ -16,6 +17,8 @@ interface AddButtonProps {
 }
 
 export default function AddButton({ isOpen, onToggle, onAddExpensePressed, onAddExpenseTemplatePressed }: AddButtonProps) {
+    const { isForTestUser } = useTestUser()
+
     const animationProgress = useSharedValue(0);
 
     useEffect(() => {
@@ -54,11 +57,11 @@ export default function AddButton({ isOpen, onToggle, onAddExpensePressed, onAdd
                 style={[styles.optionsWrapper, optionsAnimatedStyle]}
             >
                 <FloatingOptionButton 
-                    text="Add expense" 
+                    text={ isForTestUser ? "Add loan entry" : "Add expense" }
                     onPress={onAddExpensePressed} 
                 />
                 <FloatingOptionButton 
-                    text="Add expense template" 
+                    text={ isForTestUser ? "Add loan template" : "Add expense template" }
                     onPress={onAddExpenseTemplatePressed} 
                 />
             </Animated.View>

@@ -4,6 +4,7 @@ import ExpenseView from "../components/ExpenseView"
 import { useCallback, useState } from "react"
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import LoadingOverlay from "../components/LoadingOverlay";
+import { useTestUser } from "../context/TestUserContext";
 
 interface TodayExpensesProps {
     total: number | string
@@ -14,8 +15,16 @@ interface TodayExpensesProps {
 }
 
 export default function TodayExpenses({ total, onBackButtonPress, expenses, fetchTodayExpenses, fetchTodayTotal}: TodayExpensesProps) {
+    const { isForTestUser } = useTestUser()
     const [refreshing, setRefreshing] = useState(false);
     const [isSaving, setIsSaving] = useState(false)
+
+    const formattedDate = new Date().toLocaleDateString('en-US', {
+        timeZone: 'Asia/Manila',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
     
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -50,7 +59,7 @@ export default function TodayExpenses({ total, onBackButtonPress, expenses, fetc
             >
                 <View>
                     <View style={styles.header}>
-                        <Text style={styles.headerText}>Today's Expenses</Text>
+                        <Text style={styles.headerText}>{ isForTestUser ? "Today's Entries" : "Today's Expenses"}</Text>
                         <Pressable 
                             style={styles.homeButton}
                             onPress={onBackButtonPress}
@@ -59,6 +68,12 @@ export default function TodayExpenses({ total, onBackButtonPress, expenses, fetc
                         </Pressable>
                     </View>
 
+                    { isForTestUser &&
+                        <View style={styles.dateContainer}>
+                            <Text style={styles.dateText}>{formattedDate}</Text>
+                        </View>
+                    }
+
                     <View style={styles.totalWrapper}>
                         <Text style={styles.totalText}>Total:</Text>
                         <Text style={styles.totalCashText}>₱{total}</Text>
@@ -66,7 +81,7 @@ export default function TodayExpenses({ total, onBackButtonPress, expenses, fetc
 
                     <View style={styles.expensesContainer}>
                         {expenses.length === 0 ? (
-                            <Text>No expenses today yet!</Text>
+                            <Text>{ isForTestUser ? "No entries yet!" : "No expenses today yet!" }</Text>
                         ) : (
                             expenses.map(expense => (
                                 <ExpenseView 
@@ -130,7 +145,7 @@ const styles = StyleSheet.create({
         fontSize: 24
     },
     expensesContainer: {
-        gap: 14,
+        gap: 10,
         paddingBottom: 100
     },
     backdrop: {
@@ -145,5 +160,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         paddingHorizontal: 20
+    },
+    dateContainer: {
+        marginTop: 40,
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    dateText: {
+        fontWeight: 'bold',
+        fontSize: 24
     }
 })

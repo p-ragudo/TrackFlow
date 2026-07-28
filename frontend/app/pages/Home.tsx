@@ -320,20 +320,21 @@ export default function Home() {
                                     </Text>
                                 ))}
 
-                                { isForTestUser
-                                    ? <Text style={styles.testUserTabTitle}>Names</Text>
-                                    : <View style={styles.tabSection}>
-                                        <TabSelector 
-                                            name={!loading ? 'Expenses' : ''}
-                                            selected={activeTab === 'expenses'} 
-                                            onPress={() => setActiveTab('expenses')} 
-                                        />
-                                        <TabSelector 
-                                            name={!loading ? 'Savings' : ''} 
-                                            selected={activeTab === 'savings'} 
-                                            onPress={() => setActiveTab('savings')} 
-                                        />
-                                    </View>
+                                { !loading &&
+                                    isForTestUser
+                                        ? <Text style={styles.testUserTabTitle}>Loan Templates</Text>
+                                        : <View style={styles.tabSection}>
+                                            <TabSelector 
+                                                name={!loading ? 'Expenses' : ''}
+                                                selected={activeTab === 'expenses'} 
+                                                onPress={() => setActiveTab('expenses')} 
+                                            />
+                                            <TabSelector 
+                                                name={!loading ? 'Savings' : ''} 
+                                                selected={activeTab === 'savings'} 
+                                                onPress={() => setActiveTab('savings')} 
+                                            />
+                                        </View>
                                 }
 
                                 {!loading && 

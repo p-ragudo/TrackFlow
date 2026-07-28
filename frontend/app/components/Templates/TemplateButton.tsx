@@ -21,10 +21,8 @@ export interface ExpensePayload {
 }
 
 export default function TemplateButton({ template, setActiveTemplate, setModalVisible }: TemplateButtonProps) {
-    const { activeSpreadsheetId } = useTestUser()
-
-    const api = useApi()
-    const { isAnyButtonBusy, triggerAction } = useGlobalButtons();
+    const { isForTestUser} = useTestUser()
+    const { isAnyButtonBusy } = useGlobalButtons();
 
     const scaleValue = useRef(new Animated.Value(1)).current;
 
@@ -61,9 +59,11 @@ export default function TemplateButton({ template, setActiveTemplate, setModalVi
                 disabled={isAnyButtonBusy}
                 style={styles.section}
             >
-                <Text style={styles.groupText}>
-                    {template.group}
-                </Text>
+                { !isForTestUser &&
+                    <Text style={styles.groupText}>
+                        {template.group}
+                    </Text>
+                }
 
                 <View style={styles.topRow}>
                     <Text style={styles.topRowText}>
@@ -74,12 +74,17 @@ export default function TemplateButton({ template, setActiveTemplate, setModalVi
                     </Text>
                 </View>
 
-                <Text style={styles.categoryText}>
-                    {template.category}
-                </Text>
-                <Text style={styles.tagText}>
-                    {template.tag}
-                </Text>
+                { !isForTestUser &&
+                    <Text style={styles.categoryText}>
+                        {template.category}
+                    </Text>
+                }
+
+                { !isForTestUser &&
+                    <Text style={styles.tagText}>
+                        {template.tag}
+                    </Text>
+                }
 
                 <Text style={[
                     template.description.trim() ? styles.descriptionText: styles.noDescriptionText,

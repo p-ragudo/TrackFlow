@@ -1,18 +1,23 @@
 import { View, Text, StyleSheet } from "react-native";
 import { Expense } from "../types/Expense";
+import { useTestUser } from "../context/TestUserContext";
 
 interface ExpenseViewProps {
     expense: Expense
 }
 
 export default function ExpenseView({ expense }: ExpenseViewProps) {
+    const { isForTestUser } = useTestUser()
+
     return (
         <View
             style={styles.section}
         >
-            <Text style={styles.groupText}>
-                {expense.group}
-            </Text>
+            { !isForTestUser &&
+                <Text style={styles.groupText}>
+                    {expense.group}
+                </Text>
+            }
 
             <View style={styles.topRow}>
                 <Text style={styles.topRowText}>
@@ -23,13 +28,17 @@ export default function ExpenseView({ expense }: ExpenseViewProps) {
                 </Text>
             </View>
 
-            <Text style={styles.categoryText}>
-                {expense.category}
-            </Text>
+            { !isForTestUser && 
+                <Text style={styles.categoryText}>
+                    {expense.category}
+                </Text>
+            }
 
-            <Text style={styles.tagText}>
-                {expense.tag}
-            </Text>
+            { !isForTestUser &&
+                <Text style={styles.tagText}>
+                    {expense.tag}
+                </Text>
+            }
 
             <Text style={[
                 expense.description.trim() ? styles.descriptionText: styles.noDescriptionText,
