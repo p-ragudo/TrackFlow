@@ -5,7 +5,7 @@ import { useApi } from '@/app/context/ApiContext';
 import { useGlobalButtons } from './ButtonProvider';
 
 interface TemplateContainerProps {
-    spreadsheetId: string
+    spreadsheetId: string | undefined
     template: Template,
 }
 

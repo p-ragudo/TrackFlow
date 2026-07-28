@@ -4,7 +4,7 @@ import { Template } from '@/app/types/Template';
 import TemplateButton from './TemplateButton';
 
 interface TemplatesSectionProps {
-    spreadsheetId: string,
+    spreadsheetId: string | undefined,
     templates: Template[]
 }
 
