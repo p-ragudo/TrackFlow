@@ -25,11 +25,13 @@ export default function CreatableSelect({
     placeholder
 }: CreatableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isFiltering, setIsFiltering] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
     // Filter options based on user input
-    const filteredOptions = options.filter((item) =>
-        item.toLowerCase().includes(value.toLowerCase()))
+    const filteredOptions = isFiltering
+        ? options.filter((item) => item.toLowerCase().includes(value.toLowerCase()))
+        : options;
 
     const toggleDropdown = () => {
         if (isOpen) {
@@ -51,9 +53,13 @@ export default function CreatableSelect({
                     value={value}
                     onChangeText={(text) => {
                         onChangeText(text);
+                        setIsFiltering(true);
                         setIsOpen(true);
                     }}
-                    onFocus={() => setIsOpen(true)}
+                    onFocus={() => { 
+                        setIsFiltering(false)
+                        setIsOpen(true) 
+                    }}
                     onBlur={() => setTimeout(() => setIsOpen(false), 150)}
                     placeholder={placeholder}
                     placeholderTextColor="#A0A0A0"

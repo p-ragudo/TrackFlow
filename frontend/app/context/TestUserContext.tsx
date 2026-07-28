@@ -12,7 +12,7 @@ interface TestUserContextType {
 const TestUserContext = createContext<TestUserContextType | undefined>(undefined)
 
 export const TestUserProvider = ({ children }: { children: ReactNode }) => {
-    const [isForTestUser, setIsForTestUser] = useState(true)
+    const [isForTestUser, setIsForTestUser] = useState(false)
     const activeSpreadsheetId = isForTestUser
         ?  TEST_SPREADSHEET_ID
         : PROD_SPREADSHEET_ID

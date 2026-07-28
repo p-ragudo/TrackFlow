@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, Text, TextInput, View, ScrollView, Pressable, Keyboard } from 'react-native';
 import CreatableSelect from '../components/CreatableSelect';
 import { BouncyPressable } from '../components/BouncyPressable';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
@@ -53,6 +53,8 @@ export default function AddPage({
     }
 
     const handleOnSavePressed = async () => {
+        Keyboard.dismiss()
+        
         setIsSaving(true)
         try {
             await onSavePressed(form, type)
@@ -120,30 +122,26 @@ export default function AddPage({
                             />
                         </View>
 
-                        { !isForTestUser && 
-                            <View>
-                                <CreatableSelect 
-                                    label="Tag"
-                                    value={form.tag}
-                                    onChangeText={(val: string) => handleChange('tag', val)}
-                                    options={tags}
-                                />
+                        <CreatableSelect 
+                            label="Tag"
+                            value={form.tag}
+                            onChangeText={(val: string) => handleChange('tag', val)}
+                            options={tags}
+                        />
 
-                                <CreatableSelect 
-                                    label="Category"
-                                    value={form.category}
-                                    onChangeText={(val: string) => handleChange('category', val)}
-                                    options={categories}
-                                />
+                        <CreatableSelect 
+                            label="Category"
+                            value={form.category}
+                            onChangeText={(val: string) => handleChange('category', val)}
+                            options={categories}
+                        />
 
-                                <CreatableSelect 
-                                    label="Group"
-                                    value={form.group}
-                                    onChangeText={(val: string) => handleChange('group', val)}
-                                    options={groups}
-                                />
-                            </View>
-                        }
+                        <CreatableSelect 
+                            label="Group"
+                            value={form.group}
+                            onChangeText={(val: string) => handleChange('group', val)}
+                            options={groups}
+                        />
                     </View>
                 </View>
             </ScrollView>

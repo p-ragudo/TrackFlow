@@ -5,8 +5,10 @@ import { useApi } from '@/app/context/ApiContext';
 import { useGlobalButtons } from './ButtonProvider';
 import { useTestUser } from '@/app/context/TestUserContext';
 
-interface TemplateContainerProps {
+interface TemplateButtonProps {
     template: Template,
+    setActiveTemplate: (template: Template) => void
+    setModalVisible: (visibility: boolean) => void
 }
 
 export interface ExpensePayload {
@@ -18,7 +20,7 @@ export interface ExpensePayload {
     description: string
 }
 
-export default function TemplateButton({ template }: TemplateContainerProps) {
+export default function TemplateButton({ template, setActiveTemplate, setModalVisible }: TemplateButtonProps) {
     const { activeSpreadsheetId } = useTestUser()
 
     const api = useApi()
@@ -45,39 +47,13 @@ export default function TemplateButton({ template }: TemplateContainerProps) {
         }).start();
     };
 
-    const handlePress = async () => {
-        triggerAction(async () => {
-            try {
-                const payload: ExpensePayload = {
-                    name: template.name,
-                    group: template.group,
-                    category: template.category,
-                    tag: template.tag,
-                    amount: template.amount,
-                    description: template.description.trim().length === 0 ? '' : template.description
-                }
-
-                const response: any = await api.post(
-                    `/api/v1/expenses?spreadsheetid=${activeSpreadsheetId}&sheet=expenses`,
-                    payload
-                )
-
-                DeviceEventEmitter.emit('expenseAdded');
-            } catch (error: any) {
-                console.error("Failed to add expense: ", error);
-
-                if (error.response) {
-                    console.log("Error data:", error.response.data);
-                    console.log("Error status:", error.response.status);
-                }
-            }
-        })
-    }
-
     return (
         <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
             <Pressable
-                onPress={handlePress}
+                onPress={() => {
+                    setActiveTemplate(template)
+                    setModalVisible(true)
+                }}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 unstable_pressDelay={120} // 120ms delay gives the ScrollView time to claim the gesture

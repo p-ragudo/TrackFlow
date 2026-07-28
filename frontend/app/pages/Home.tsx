@@ -13,6 +13,7 @@ import { Expense } from '../types/Expense';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useGlobalButtons } from '../components/Templates/ButtonProvider';
 import { useTestUser } from '../context/TestUserContext';
+import ConfirmModal from '../components/Templates/ConfirmModal';
 
 interface TemplatesResponse {
     templates: Template[]
@@ -67,21 +68,32 @@ export default function Home() {
     const [user, setUser] = useState("");
 
     const { isAnyButtonBusy } = useGlobalButtons()
-
-    const [errors, setErrors] = useState<string[]>([])
-    const [todayTotal, setTodayTotal] = useState(0)
-    const [todayExpenses, setTodayExpenses] = useState<Expense[]>([])
-    const [templates, setTemplates] = useState<Template[]>([])
+    const [refreshing, setRefreshing] = useState(false);
+    const [activePage, setActivePage] = useState<Pages>('home')
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
     const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false)
+
+    const [activeTemplate, setActiveTemplate] = useState<Template>({
+        id: -1,
+        name: "",
+        group: "",
+        category: "",
+        tag: "",
+        amount: -1,
+        description: ""
+    })
+
+    const [errors, setErrors] = useState<string[]>([])
+
+    const [todayTotal, setTodayTotal] = useState(0)
+    const [todayExpenses, setTodayExpenses] = useState<Expense[]>([])
+    const [templates, setTemplates] = useState<Template[]>([])
 
     const [groups, setGroups] = useState<string[]>([])
     const [categories, setCategories] = useState<string[]>([])
     const [tags, setTags] = useState<string[]>([])
-
-    const [activePage, setActivePage] = useState<Pages>('home')
 
     // Dimming backdrop style
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -265,6 +277,14 @@ export default function Home() {
         setActivePage('todayExpenses')
     }
 
+    const handleSetModalVisibility = (visibility: boolean) => {
+        setIsModalVisible(visibility)
+    }
+
+    const handleSetActiveTemplate = (template: Template) => {
+        setActiveTemplate(template)
+    }
+
     const renderContent = (activePage: string) => {
         switch (activePage) {
             case 'home':
@@ -316,9 +336,24 @@ export default function Home() {
                                     </View>
                                 }
 
-                                {!loading && <TemplatesSection templates={templates}/>}
+                                {!loading && 
+                                    <TemplatesSection 
+                                        templates={templates}
+                                        setActiveTemplate={handleSetActiveTemplate}
+                                        setModalVisible={setIsModalVisible}
+                                    />
+                                }
                             </View>
                         </ScrollView>
+
+                        <ConfirmModal 
+                            isVisible={isModalVisible}
+                            setModalVisible={handleSetModalVisibility}
+                            template={activeTemplate}
+                            groups={groups}
+                            categories={categories}
+                            tags={tags}
+                        />
 
                         {/* Dark Backdrop Overlay */}
                         <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
@@ -340,7 +375,7 @@ export default function Home() {
                         </Animated.View>
 
                         {/* Floating Action Button */}
-                        { !isAnyButtonBusy && !loading &&
+                        { !isAnyButtonBusy && !loading && !isModalVisible &&
                             <AddButton 
                                 isOpen={isAddMenuOpen} 
                                 onToggle={() => setIsAddMenuOpen((prev) => !prev)}

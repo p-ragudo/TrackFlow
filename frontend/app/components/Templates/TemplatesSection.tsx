@@ -5,9 +5,11 @@ import TemplateButton from './TemplateButton';
 
 interface TemplatesSectionProps {
     templates: Template[]
+    setActiveTemplate: (template: Template) => void
+    setModalVisible: (visibility: boolean) => void
 }
 
-export default function TemplatesSection({ templates }: TemplatesSectionProps) {
+export default function TemplatesSection({ templates, setActiveTemplate, setModalVisible }: TemplatesSectionProps) {
     return (
         <View style={styles.section}>
             {templates.length > 0 ? (
@@ -15,6 +17,8 @@ export default function TemplatesSection({ templates }: TemplatesSectionProps) {
                     <TemplateButton 
                         key={template.id}
                         template={template}
+                        setActiveTemplate={setActiveTemplate}
+                        setModalVisible={setModalVisible}
                     />
                 ))
             ) : (
