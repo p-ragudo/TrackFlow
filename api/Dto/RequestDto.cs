@@ -19,3 +19,12 @@ public record CreateTemplateRequest
     decimal Amount,
     string? Description
 );
+
+public record BootstrapRequest
+(
+    string TemplateSheet,
+    string ExpensesSheet,
+    string TodayExpensesSheet,
+    string IdentifiersSheet,
+    string NameSheet
+);

@@ -450,4 +450,73 @@ public class GoogleSheetsService
 
         return todayTotal;
     }
+
+    public async Task<BootstrapResponse?> GetBootstrapDataAsync(
+        string spreadsheetId,
+        string templateSheet,
+        string expensesSheet,
+        string todayExpensesSheet,
+        string identifiersSheet,
+        string nameSheet
+    )
+    {
+        DateOnly today = GetDateLocal();
+
+        // Define all ranges needed for startup
+        var ranges = new List<string>
+        {
+            $"{templateSheet}!A:J",            // Range 0
+            $"{today:yyyy}_{expensesSheet}!O2",      // Range 1 (Today's total cell)
+            $"{todayExpensesSheet}!A:I",        // Range 2
+            $"{identifiersSheet}!A:C",
+            $"{nameSheet}!B1"         // Range 3
+        };
+
+        var batchGetRequest = _sheetService.Spreadsheets.Values.BatchGet(spreadsheetId);
+        batchGetRequest.Ranges = ranges;
+
+        var response = await batchGetRequest.ExecuteAsync();
+        if (response?.ValueRanges == null || response.ValueRanges.Count < 4)
+        {
+            return null;
+        }
+
+        // 1. Templates
+        var templateValues = response.ValueRanges[0].Values;
+        var templates = MapValuesToTemplate(templateValues);
+
+        // 2. Today's Total
+        decimal todayTotal = 0;
+        var totalValues = response.ValueRanges[1].Values;
+        if (totalValues?.Count == 1 && totalValues[0].Count > 0)
+        {
+            _ = decimal.TryParse(totalValues[0][0]?.ToString(), out todayTotal);
+        }
+
+        // 3. Today's Expenses
+        var expenseValues = response.ValueRanges[2].Values;
+        var todayExpenses = expenseValues != null ? MapValuesToExpense(expenseValues) : new List<TodayExpenseItemResponse>();
+
+        // 4. Identifiers
+        var identifierValues = response.ValueRanges[3].Values;
+        var identifiers = identifierValues != null ? MapValuesToIdentifiers(identifierValues) : new Identifiers();
+
+        var nameValues = response.ValueRanges[4].Values;
+        string name = (nameValues?.Count > 0 && nameValues[0].Count > 0)
+            ? nameValues[0][0].ToString() ?? string.Empty
+            : string.Empty;
+
+        return new BootstrapResponse(templates, todayTotal, todayExpenses, identifiers, name);
+    }
+
+    public async Task<string?> GetNameAsync(string spreadsheetId, string sheet)
+    {
+        var getCellRequest = _sheetService.Spreadsheets.Values.Get(spreadsheetId, $"{sheet}!B1");
+        var cellResponse = await getCellRequest.ExecuteAsync();
+
+        if (cellResponse.Values == null || cellResponse.Values.Count != 1)
+            return null;
+
+        return cellResponse.Values[0][0]?.ToString();
+    }
 }

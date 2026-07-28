@@ -1,5 +1,7 @@
 namespace api.Dto;
 
+using api.Models;
+
 public record TodayExpenseItemResponse
 (
     int Id,
@@ -11,4 +13,13 @@ public record TodayExpenseItemResponse
     string Tag,
     decimal Amount,
     string? Description
+);
+
+public record BootstrapResponse
+(
+    List<Template> Templates,
+    decimal TodayTotal,
+    List<TodayExpenseItemResponse> TodayExpenses,
+    Identifiers Identifiers,
+    string name
 );

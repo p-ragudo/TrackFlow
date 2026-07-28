@@ -249,7 +249,7 @@ export default function Home() {
                         >
                             <View style={styles.mainPage}>
                                 <Text style={styles.helloText}>
-                                    Hello, {user}
+                                    { loading ? "" : `Hello, ${user}`}
                                 </Text>
 
                                 <ExpensesSection 
@@ -268,12 +268,12 @@ export default function Home() {
 
                                 <View style={styles.tabSection}>
                                     <TabSelector 
-                                        name='Expenses' 
+                                        name={!loading ? 'Expenses' : ''}
                                         selected={activeTab === 'expenses'} 
                                         onPress={() => setActiveTab('expenses')} 
                                     />
                                     <TabSelector 
-                                        name='Savings' 
+                                        name={!loading ? 'Savings' : ''} 
                                         selected={activeTab === 'savings'} 
                                         onPress={() => setActiveTab('savings')} 
                                     />
@@ -303,7 +303,7 @@ export default function Home() {
                         </Animated.View>
 
                         {/* Floating Action Button */}
-                        { !isAnyButtonBusy &&
+                        { !isAnyButtonBusy && !loading &&
                             <AddButton 
                                 isOpen={isAddMenuOpen} 
                                 onToggle={() => setIsAddMenuOpen((prev) => !prev)}
