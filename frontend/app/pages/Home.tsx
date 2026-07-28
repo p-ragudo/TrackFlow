@@ -74,6 +74,7 @@ export default function Home() {
     const [activeTab, setActiveTab] = useState<'expenses' | 'savings'>('expenses')
     const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false)
+    const [isModalSaving, setIsModalSaving] = useState(false)
 
     const [activeTemplate, setActiveTemplate] = useState<Template>({
         id: -1,
@@ -157,7 +158,7 @@ export default function Home() {
 
     const fetchData = async () => {
         try {
-            setLoading(true);
+            isModalSaving && setLoading(true);
 
             const payload = {
                 templateSheet: "templates",
@@ -354,6 +355,8 @@ export default function Home() {
                             groups={groups}
                             categories={categories}
                             tags={tags}
+                            fetchData={fetchData}
+                            setModalSaving={setIsModalSaving}
                         />
 
                         {/* Dark Backdrop Overlay */}

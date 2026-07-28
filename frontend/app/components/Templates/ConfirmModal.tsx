@@ -27,6 +27,8 @@ interface ConfirmModalProps {
     groups: string[]
     categories: string[]
     tags: string[]
+    fetchData: () => Promise<void>
+    setModalSaving: (isSaving: boolean) => void
 }
 
 export default function ConfirmModal({ 
@@ -35,7 +37,9 @@ export default function ConfirmModal({
     template,
     groups = [],
     categories = [],
-    tags = []
+    tags = [],
+    fetchData,
+    setModalSaving
 }: ConfirmModalProps) {
     const { isForTestUser, activeSpreadsheetId } = useTestUser()
     const { triggerAction } = useGlobalButtons();
@@ -88,7 +92,12 @@ export default function ConfirmModal({
                     payload
                 )
 
+                setModalSaving(true)
+
                 DeviceEventEmitter.emit('expenseAdded');
+
+                await fetchData()
+                setModalSaving(false)
             } catch (error: any) {
                 console.error("Failed to add expense: ", error);
 
