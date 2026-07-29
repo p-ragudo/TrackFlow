@@ -2,19 +2,19 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
-using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
 using api.Models;
 using api.Dto;
+using SheetUtils = api.Utils.GoogleSheetUtils;
 
 namespace api.Services;
 
-public class GoogleSheetsService
+public class GoogleSheetsExpensesService
 {
     private readonly GoogleCredential _credential;
     private readonly SheetsService _sheetService;
 
-    public GoogleSheetsService()
+    public GoogleSheetsExpensesService()
     {
         _credential = CredentialFactory.FromFile<ServiceAccountCredential>("google-credentials.json").ToGoogleCredential();
 
@@ -24,158 +24,52 @@ public class GoogleSheetsService
         });
     }
 
-    private async Task<AppendValuesResponse> AppendAsync(string spreadsheetId, string range, ValueRange valueRange)
+    public async Task<bool> AppendExpenseAsync(
+        string spreadsheetId,
+        string sheet,
+        string name,
+        string rowCell,
+        string idCell,
+        string group,
+        string category,
+        string tag,
+        decimal amount,
+        string? description = null
+    )
     {
-        AppendRequest? appendRequest = _sheetService.Spreadsheets.Values.Append(valueRange, spreadsheetId, range);
-
-        appendRequest.ValueInputOption = AppendRequest.ValueInputOptionEnum.USERENTERED;
-        appendRequest.InsertDataOption = AppendRequest.InsertDataOptionEnum.OVERWRITE;
-
-        AppendValuesResponse response = await appendRequest.ExecuteAsync();
-        return response;
-    }
-
-    private async Task<UpdateValuesResponse> UpdateAsync(string spreadsheetId, string range, ValueRange valueRange)
-    {
-        UpdateRequest? updateRequest = _sheetService.Spreadsheets.Values.Update(valueRange, spreadsheetId, range);
-
-        updateRequest.ValueInputOption = UpdateRequest.ValueInputOptionEnum.USERENTERED;
-
-        UpdateValuesResponse response = await updateRequest.ExecuteAsync();
-        return response;
-    }
-
-    private async Task<decimal?> GetNextIntFromCellAsync(string spreadsheetId, string range)
-    {
-        var getCellRequest = _sheetService.Spreadsheets.Values.Get(spreadsheetId, range);
-        var cellResponse = await getCellRequest.ExecuteAsync();
-
-        if (cellResponse.Values == null || cellResponse.Values.Count != 1)
-            return null;
-
-        if (int.TryParse(cellResponse.Values[0][0]?.ToString(), out int nextRow))
-            return nextRow;
-
-        return null;
-    }
-
-    private async Task<IList<IList<object>>?> GetValuesFromRange(string spreadsheetId, string range)
-    {
-        var getCellRequest = _sheetService.Spreadsheets.Values.Get(spreadsheetId, range);
-        var cellResponse = await getCellRequest.ExecuteAsync();
-
-        return cellResponse.Values ?? null;
-    }
-
-    private static List<TodayExpenseItemResponse> MapValuesToExpense(IList<IList<object>> values)
-    {
-        var expenses = new List<TodayExpenseItemResponse>();
-
-        if (values == null || values.Count <= 1)
-            return expenses;
-
-        foreach (var row in values.Skip(1)) // skips header row
-        {
-            if (row.Count == 0) continue;
-
-            expenses.Add(new TodayExpenseItemResponse
-            (
-                int.TryParse(row[0].ToString(), out int id) ? id : -1,
-                row[1].ToString() ?? string.Empty,
-                row[2].ToString() ?? string.Empty,
-                row[3].ToString() ?? string.Empty,
-                row[4].ToString() ?? string.Empty,
-                row[5].ToString() ?? string.Empty,
-                row[6].ToString() ?? string.Empty,
-                decimal.TryParse(row[7].ToString(), out decimal amount) ? amount : -1,
-                row.Count > 8 ? row[8].ToString() ?? string.Empty : string.Empty
-            ));
-        }
-
-        return expenses;
-    }
-
-    private static List<Template> MapValuesToTemplate(IList<IList<object>> values)
-    {
-        var templates = new List<Template>();
-
-        if (values == null || values.Count <= 1)
-            return templates;
-
-        foreach (var row in values.Skip(1)) // skips header row
-        {
-            if (row.Count == 0) continue;
-
-            templates.Add(new Template
-            {
-                Id = int.TryParse(row[0].ToString(), out int id) ? id : -1,
-                Name = row[1].ToString() ?? string.Empty,
-                Group = row[2].ToString() ?? string.Empty,
-                Category = row[3].ToString() ?? string.Empty,
-                Tag = row[4].ToString() ?? string.Empty,
-                Amount = decimal.TryParse(row[5].ToString(), out decimal amount) ? amount : -1,
-                Description = row.Count > 6 ? row[6].ToString() ?? string.Empty : string.Empty
-            });
-        }
-
-        return templates;
-    }
-
-    private static Identifiers MapValuesToIdentifiers(IList<IList<object>> values)
-    {
-        var identifiers = new Identifiers();
-
-        if (values == null || values.Count <= 1)
-            return identifiers;
-
-        foreach (var row in values.Skip(1))
-        {
-            if (row.Count == 0) continue;
-
-            identifiers.Groups.Add(row[0].ToString() ?? string.Empty);
-            identifiers.Categories.Add(row[1].ToString() ?? string.Empty);
-            identifiers.Tags.Add(row[2].ToString() ?? string.Empty);
-        }
-
-        return identifiers;
-    }
-
-    private static DateOnly GetDateLocal()
-    {
-        DateTime utcNow = DateTime.UtcNow;
-
-        TimeZoneInfo targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
-        DateTime localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, targetTimeZone);
-
-        return DateOnly.FromDateTime(localDateTime);
-    }
-
-    public async Task<bool> AppendExpenseAsync(string spreadsheetId, string sheet, string name, string group, string category, string tag, decimal amount, string? description = null)
-    {
-        DateOnly today = GetDateLocal();
+        DateOnly today = SheetUtils.GetDateLocal();
         string completeSheet = $"{today:yyyy}_{sheet}";
         Console.WriteLine(completeSheet);
 
-        int? nextRow = (int?)await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!M2");
-        if (nextRow == null)
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!{rowCell}");
+        if (nextRowCell == null)
         {
-            Console.WriteLine("Failed to append expense. The next row counter could not be fetched or parsed.");
+            Console.WriteLine("Failed to append expense. The next row counter could not be fetched.");
+            return false;
+        }
+        if (int.TryParse(nextRowCell, out int nextRow))
+        {
+            Console.WriteLine("Failed to append expense. The next row counter could not be parsed.");
             return false;
         }
 
-        int? nextId = (int?)await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!N2");
-        if (nextId == null)
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!{idCell}");
+        if (nextRowCell == null)
         {
-            Console.WriteLine("Failed to append expense. The next id could not be fetched or parsed.");
+            Console.WriteLine("Failed to append expense. The next row id could not be fetched.");
             return false;
         }
-        Console.WriteLine($"\t\tID: {nextId}");
+        if (int.TryParse(nextIdCell, out int nextId))
+        {
+            Console.WriteLine("Failed to append expense. The next row id could not be parsed.");
+            return false;
+        }
 
         string range = $"{completeSheet}!A{nextRow}:J{nextRow}";
 
         var newExpense = new Expense
         {
-            Id = (int)nextId,
+            Id = nextId,
             Date = today,
             Month = today.ToString("MMMM"),
             Day = today.ToString("dddd"),
@@ -194,7 +88,7 @@ public class GoogleSheetsService
 
         try
         {
-            AppendValuesResponse response = await AppendAsync(spreadsheetId, range, values);
+            AppendValuesResponse response = await SheetUtils.AppendAsync(_sheetService, spreadsheetId, range, values);
 
             if (response?.Updates?.UpdatedRows == 1)
             {
@@ -213,25 +107,43 @@ public class GoogleSheetsService
         }
     }
 
-    public async Task<bool> AppendTemplateAsync(string spreadsheetId, string sheet, string name, string group, string category, string tag, decimal amount, string? description = null)
+    public async Task<bool> AppendTemplateAsync(
+        string spreadsheetId,
+        string sheet,
+        string name,
+        string rowCell,
+        string idCell,
+        string group,
+        string category,
+        string tag,
+        decimal amount,
+        string? description = null)
     {
-        int? nextRow = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!I2");
-        if (nextRow == null)
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{rowCell}");
+        if (nextRowCell == null) {
+            Console.WriteLine("Failed to append template. The next row counter could not be fetched.");
+            return false;
+        }
+        if (int.TryParse(nextRowCell, out int nextRow))
         {
-            Console.WriteLine("Failed to append template. The next row counter could not be fetched or parsed.");
+            Console.WriteLine("Failed to append template. The next row counter could not be parsed.");
             return false;
         }
 
-        int? nextId = (int?) await GetNextIntFromCellAsync(spreadsheetId, $"{sheet}!J2");
-        if (nextId == null)
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{idCell}");
+        if (nextIdCell == null) {
+            Console.WriteLine("Failed to append template. The next id counter could not be fetched.");
+            return false;
+        }
+        if (int.TryParse(nextIdCell, out int nextId))
         {
-            Console.WriteLine("Failed to append template. The next id counter could not be fetched or parsed.");
+            Console.WriteLine("Failed to append template. The next id counter could not be parsed.");
             return false;
         }
 
         string range = $"{sheet}!A{nextRow}:G{nextRow}";
 
-        var newTemplate = new Template
+        var newTemplate = new ExpenseTemplate
         {
             Id = (int)nextId,
             Name = name,
@@ -249,7 +161,7 @@ public class GoogleSheetsService
 
         try
         {
-            AppendValuesResponse response = await AppendAsync(spreadsheetId, range, values);
+            AppendValuesResponse response = await SheetUtils.AppendAsync(_sheetService, spreadsheetId, range, values);
 
             if (response?.Updates?.UpdatedRows == 1)
             {
@@ -268,21 +180,21 @@ public class GoogleSheetsService
         }
     }
 
-    public async Task<List<Template>?> GetTemplatesAsync(string spreadsheetId, string sheet)
+    public async Task<List<ExpenseTemplate>?> GetTemplatesAsync(string spreadsheetId, string sheet)
     {
-        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:G");
+        var values = await SheetUtils.GetValuesFromRange(_sheetService, spreadsheetId, $"{sheet}!A:G");
 
         if (values == null || values.Count <= 1)
             return null;
 
-        var templates = MapValuesToTemplate(values);
+        var templates = SheetUtils.MapValuesToTemplate(values);
 
         return templates;
     }
 
     public async Task<List<TodayExpenseItemResponse>?> GetTodayExpensesAsync(string spreadsheetId, string sheet)
     {
-        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:I");
+        var values = await SheetUtils.GetValuesFromRange(_sheetService, spreadsheetId, $"{sheet}!A:I");
 
         if (values == null)
         {
@@ -293,14 +205,14 @@ public class GoogleSheetsService
             return [];
         }
 
-        var expenses = MapValuesToExpense(values);
+        var expenses = SheetUtils.MapValuesToExpense(values);
 
         return expenses;
     }
 
     public async Task<Identifiers?> GetIdentifiersAsync(string spreadsheetId, string sheet)
     {
-        var values = await GetValuesFromRange(spreadsheetId, $"{sheet}!A:C");
+        var values = await SheetUtils.GetValuesFromRange(_sheetService, spreadsheetId, $"{sheet}!A:C");
 
         if (values == null)
         {
@@ -311,12 +223,12 @@ public class GoogleSheetsService
             return new Identifiers();
         }
 
-        var identifiers = MapValuesToIdentifiers(values);
+        var identifiers = SheetUtils.MapValuesToIdentifiers(values);
 
         return identifiers;
     }
 
-    public async Task<bool> UpdateTemplateAsync(string spreadsheetId, string sheet, int id, Template updatedTemplate)
+    public async Task<bool> UpdateTemplateAsync(string spreadsheetId, string sheet, int id, ExpenseTemplate updatedTemplate)
     {
         var values = await GetTemplatesAsync(spreadsheetId, sheet);
 
@@ -335,7 +247,7 @@ public class GoogleSheetsService
 
         var specificRowRange = $"{sheet}!A{targetRow}:G{targetRow}";
 
-        var newTemplate = new Template
+        var newTemplate = new ExpenseTemplate
         {
             Id = id,
             Name = updatedTemplate.Name,
@@ -353,7 +265,7 @@ public class GoogleSheetsService
 
         try
         {
-            var response = await UpdateAsync(spreadsheetId, specificRowRange, valueRange);
+            var response = await SheetUtils.UpdateAsync(_sheetService, spreadsheetId, specificRowRange, valueRange);
 
             if (response?.UpdatedRows == 1)
             {
@@ -399,10 +311,10 @@ public class GoogleSheetsService
         var spreadsheetInfo = await _sheetService.Spreadsheets.Get(spreadsheetId).ExecuteAsync();
 
         var targetSheet = spreadsheetInfo.Sheets
-            .FirstOrDefault(s => s.Properties.Title.Equals("Templates", StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(s => s.Properties.Title.Equals(sheet, StringComparison.OrdinalIgnoreCase));
         if (targetSheet == null)
         {
-            Console.WriteLine("Could not find sheet 'Templates'");
+            Console.WriteLine($"Could not find sheet '{sheet}'");
             return false;
         }
 
@@ -443,10 +355,20 @@ public class GoogleSheetsService
 
     public async Task<decimal?> GetTodayTotal(string spreadsheetId, string sheet)
     {
-        DateOnly today = GetDateLocal();
+        DateOnly today = SheetUtils.GetDateLocal();
         string completeSheet = $"{today:yyyy}_{sheet}";
 
-        decimal? todayTotal = await GetNextIntFromCellAsync(spreadsheetId, $"{completeSheet}!O2");
+        string? todayTotalCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!O2");
+        if (todayTotalCell == null)
+        {
+            Console.WriteLine("Failed to get today's total. The cell could not be fetched.");
+            return null;
+        }
+        if (decimal.TryParse(todayTotalCell, out decimal todayTotal))
+        {
+            Console.WriteLine("Failed to get today's total. The cell could not be parsed.");
+            return null;
+        }
 
         return todayTotal;
     }
@@ -460,7 +382,7 @@ public class GoogleSheetsService
         string nameSheet
     )
     {
-        DateOnly today = GetDateLocal();
+        DateOnly today = SheetUtils.GetDateLocal();
 
         // Define all ranges needed for startup
         var ranges = new List<string>
@@ -483,7 +405,7 @@ public class GoogleSheetsService
 
         // 1. Templates
         var templateValues = response.ValueRanges[0].Values;
-        var templates = MapValuesToTemplate(templateValues);
+        var templates = SheetUtils.MapValuesToTemplate(templateValues);
 
         // 2. Today's Total
         decimal todayTotal = 0;
@@ -495,11 +417,11 @@ public class GoogleSheetsService
 
         // 3. Today's Expenses
         var expenseValues = response.ValueRanges[2].Values;
-        var todayExpenses = expenseValues != null ? MapValuesToExpense(expenseValues) : new List<TodayExpenseItemResponse>();
+        var todayExpenses = expenseValues != null ? SheetUtils.MapValuesToExpense(expenseValues) : new List<TodayExpenseItemResponse>();
 
         // 4. Identifiers
         var identifierValues = response.ValueRanges[3].Values;
-        var identifiers = identifierValues != null ? MapValuesToIdentifiers(identifierValues) : new Identifiers();
+        var identifiers = identifierValues != null ? SheetUtils.MapValuesToIdentifiers(identifierValues) : new Identifiers();
 
         var nameValues = response.ValueRanges[4].Values;
         string name = (nameValues?.Count > 0 && nameValues[0].Count > 0)
@@ -511,12 +433,7 @@ public class GoogleSheetsService
 
     public async Task<string?> GetNameAsync(string spreadsheetId, string sheet)
     {
-        var getCellRequest = _sheetService.Spreadsheets.Values.Get(spreadsheetId, $"{sheet}!B1");
-        var cellResponse = await getCellRequest.ExecuteAsync();
-
-        if (cellResponse.Values == null || cellResponse.Values.Count != 1)
-            return null;
-
-        return cellResponse.Values[0][0]?.ToString();
+        string? name = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!B1");
+        return name;
     }
 }

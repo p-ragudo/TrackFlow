@@ -8,9 +8,9 @@ namespace api.Controllers;
 [Route("api/v1/[controller]")]
 public class IdentifiersController : ControllerBase
 {
-    private readonly GoogleSheetsService _googleSheetsService;
+    private readonly GoogleSheetsExpensesService _googleSheetsService;
 
-    public IdentifiersController(GoogleSheetsService googleSheetsService)
+    public IdentifiersController(GoogleSheetsExpensesService googleSheetsService)
     {
         _googleSheetsService = googleSheetsService;
     }

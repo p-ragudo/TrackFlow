@@ -3,6 +3,8 @@ namespace api.Dto;
 public record CreateExpenseRequest
 (
     string Name,
+    string RowCell,
+    string IdCell,
     string Group,
     string Category,
     string Tag,
@@ -13,6 +15,8 @@ public record CreateExpenseRequest
 public record CreateTemplateRequest
 (
     string Name,
+    string RowCell,
+    string IdCell,
     string Group,
     string Category,
     string Tag,
@@ -27,4 +31,16 @@ public record BootstrapRequest
     string TodayExpensesSheet,
     string IdentifiersSheet,
     string NameSheet
+);
+
+public record CreateLoanRequest
+(
+    string ColumnStart,
+    string ColumnEnd,
+    string CounterSheet,
+    string RowCell,
+    string IdCell,
+    string Name,
+    decimal Amount,
+    string? Description
 );

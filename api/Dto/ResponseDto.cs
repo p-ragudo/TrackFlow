@@ -17,7 +17,7 @@ public record TodayExpenseItemResponse
 
 public record BootstrapResponse
 (
-    List<Template> Templates,
+    List<ExpenseTemplate> Templates,
     decimal TodayTotal,
     List<TodayExpenseItemResponse> TodayExpenses,
     Identifiers Identifiers,

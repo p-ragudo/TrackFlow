@@ -8,9 +8,9 @@ namespace api.Controllers;
 [Route("api/v1/[controller]")]
 public class ExpensesController : ControllerBase
 {
-    private readonly GoogleSheetsService _googleSheetsService;
+    private readonly GoogleSheetsExpensesService _googleSheetsService;
 
-    public ExpensesController(GoogleSheetsService googleSheetsService)
+    public ExpensesController(GoogleSheetsExpensesService googleSheetsService)
     {
         _googleSheetsService = googleSheetsService;
     }
@@ -76,6 +76,8 @@ public class ExpensesController : ControllerBase
                 spreadsheetId,
                 sheet,
                 request.Name,
+                request.RowCell,
+                request.IdCell,
                 request.Group,
                 request.Category,
                 request.Tag,

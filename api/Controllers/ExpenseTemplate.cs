@@ -7,11 +7,11 @@ namespace api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class TemplatesController : ControllerBase
+public class ExpenseTemplatesController : ControllerBase
 {
-    private readonly GoogleSheetsService _googleSheetsService;
+    private readonly GoogleSheetsExpensesService _googleSheetsService;
 
-    public TemplatesController(GoogleSheetsService googleSheetsService)
+    public ExpenseTemplatesController(GoogleSheetsExpensesService googleSheetsService)
     {
         _googleSheetsService = googleSheetsService;
     }
@@ -54,6 +54,8 @@ public class TemplatesController : ControllerBase
                 spreadsheetId,
                 sheet,
                 request.Name,
+                request.RowCell,
+                request.IdCell,
                 request.Group,
                 request.Category,
                 request.Tag,
@@ -91,7 +93,7 @@ public class TemplatesController : ControllerBase
                 spreadsheetId,
                 sheet,
                 id,
-                new Template
+                new ExpenseTemplate
                 {
                     Id = id,
                     Name = request.Name,

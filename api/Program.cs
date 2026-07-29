@@ -2,7 +2,9 @@ using api.Services;
 
 WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<GoogleSheetsService>();
+builder.Services.AddScoped<GoogleSheetsExpensesService>();
+builder.Services.AddScoped<GoogleSheetsLoanService>();
+builder.Services.AddScoped<GoogleSheetsPaymentService>();
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {

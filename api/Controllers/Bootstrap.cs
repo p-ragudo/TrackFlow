@@ -8,9 +8,9 @@ namespace api.Controllers;
 [Route("api/v1/[controller]")]
 public class BootstrapController : ControllerBase
 {
-    private readonly GoogleSheetsService _googleSheetsService;
+    private readonly GoogleSheetsExpensesService _googleSheetsService;
 
-    public BootstrapController(GoogleSheetsService googleSheetsService)
+    public BootstrapController(GoogleSheetsExpensesService googleSheetsService)
     {
         _googleSheetsService = googleSheetsService;
     }
