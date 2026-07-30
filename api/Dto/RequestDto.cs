@@ -44,3 +44,27 @@ public record CreateLoanRequest
     decimal Amount,
     string? Description
 );
+
+public record CreatePaymentRequest
+(
+    string ColumnStart,
+    string ColumnEnd,
+    string CounterSheet,
+    string RowCell,
+    string IdCell,
+    string Name,
+    decimal Amount,
+    string? Description
+);
+
+public record CreatePaymentTemplateRequest
+(
+    string ColumnStart,
+    string ColumnEnd,
+    string CounterSheet,
+    string RowCell,
+    string IdCell,
+    string Name,
+    decimal Amount,
+    string? Description
+);

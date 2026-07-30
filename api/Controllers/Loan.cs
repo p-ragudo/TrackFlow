@@ -69,13 +69,13 @@ public class LoansController : ControllerBase
             );
 
             if (loans == null)
-                return NotFound("Today's loans could not be fetched.");
+                return NotFound("Loans could not be found.");
 
             return Ok(new { loans });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error at endpoint GET /api/v1/loans/today: {ex.Message}");
+            Console.WriteLine($"Error at endpoint GET /api/v1/loans: {ex.Message}");
             return StatusCode(500, "An unexpected error occurred while processing your request.");
         }
     }
@@ -109,11 +109,11 @@ public class LoansController : ControllerBase
 
             if (success)
             {
-                return Ok(new { message = $"Successfully updated loan with ID {request.Id}" });
+                return Ok(new { message = "Successfully updated loan!" });
             }
             else
             {
-                return Problem($"Failed to update loan with ID {request.Id}");
+                return Problem("Failed to update loan.");
             }
         }
         catch (Exception ex)
@@ -124,12 +124,12 @@ public class LoansController : ControllerBase
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteTemplateById(
+    public async Task<IActionResult> DeleteLoanById(
         [FromQuery] string spreadsheetId,
         [FromQuery] string sheet,
-        [FromQuery] int id,
         [FromQuery] string columnStart,
-        [FromQuery] string columnEnd
+        [FromQuery] string columnEnd,
+        [FromQuery] int id
     )
     {
         try
@@ -137,18 +137,18 @@ public class LoansController : ControllerBase
             var success = await _googleSheetsService.DeleteLoanByIdAsync(
                 spreadsheetId,
                 sheet,
-                id,
                 columnStart,
-                columnEnd
+                columnEnd,
+                id
             );
 
             if (success)
             {
-                return Ok(new { message = $"Successfully deleted loan with ID {id}" });
+                return Ok(new { message = "Successfully deleted loan!" });
             }
             else
             {
-                return Problem($"Failed to delete loan with ID {id}");
+                return Problem("Failed to delete loan.");
             }
         }
         catch (Exception ex)

@@ -28,6 +28,7 @@ public class GoogleSheetsPaymentService
         string sheet,
         string columnStart,
         string columnEnd,
+        string counterSheet,
         string rowCell,
         string idCell,
         string name,
@@ -39,7 +40,7 @@ public class GoogleSheetsPaymentService
         string completeSheet = $"{today:yyyy}_{sheet}";
         Console.WriteLine(completeSheet);
 
-        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!{rowCell}");
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{counterSheet}!{rowCell}");
         if (nextRowCell == null)
         {
             Console.WriteLine("Failed to append payment. The next row counter could not be fetched.");
@@ -51,7 +52,7 @@ public class GoogleSheetsPaymentService
             return false;
         }
 
-        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!{idCell}");
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{counterSheet}!{idCell}");
         if (nextRowCell == null)
         {
             Console.WriteLine("Failed to append payment. The next row id could not be fetched.");
@@ -126,7 +127,7 @@ public class GoogleSheetsPaymentService
         string columnStart,
         string columnEnd,
         int id,
-        Loan updatedLoan
+        Payment updatedPayment
     )
     {
         var payments = await GetPaymentsAsync(spreadsheetId, sheet, columnStart, columnEnd);
@@ -149,12 +150,12 @@ public class GoogleSheetsPaymentService
         var newPayment = new Payment
         {
             Id = id,
-            Date = updatedLoan.Date,
-            Month = updatedLoan.Month,
-            Day = updatedLoan.Day,
-            Name = updatedLoan.Name,
-            Amount = updatedLoan.Amount,
-            Description = updatedLoan.Description ?? string.Empty
+            Date = updatedPayment.Date,
+            Month = updatedPayment.Month,
+            Day = updatedPayment.Day,
+            Name = updatedPayment.Name,
+            Amount = updatedPayment.Amount,
+            Description = updatedPayment.Description ?? string.Empty
         };
 
         var valueRange = new ValueRange
@@ -262,31 +263,32 @@ public class GoogleSheetsPaymentService
         string sheet,
         string columnStart,
         string columnEnd,
+        string counterSheet,
         string rowCell,
         string idCell,
         string name,
         decimal amount,
         string? description = null)
     {
-        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{rowCell}");
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{counterSheet}!{rowCell}");
         if (nextRowCell == null)
         {
             Console.WriteLine("Failed to append payment template. The next row counter could not be fetched.");
             return false;
         }
-        if (int.TryParse(nextRowCell, out int nextRow))
+        if (!int.TryParse(nextRowCell, out int nextRow))
         {
             Console.WriteLine("Failed to append payment template. The next row counter could not be parsed.");
             return false;
         }
 
-        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{idCell}");
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{counterSheet}!{idCell}");
         if (nextIdCell == null)
         {
             Console.WriteLine("Failed to append payment template. The next id counter could not be fetched.");
             return false;
         }
-        if (int.TryParse(nextIdCell, out int nextId))
+        if (!int.TryParse(nextIdCell, out int nextId))
         {
             Console.WriteLine("Failed to append payment template. The next id counter could not be parsed.");
             return false;
@@ -352,7 +354,7 @@ public class GoogleSheetsPaymentService
         string columnStart,
         string columnEnd,
         int id,
-        LoanTemplate updatedLoanTemplate
+        PaymentTemplate updatedPaymentTemplate
     )
     {
         var paymentTemplates = await GetPaymentTemplatesAsync(spreadsheetId, sheet, columnStart, columnEnd);
@@ -375,9 +377,9 @@ public class GoogleSheetsPaymentService
         var newPaymentTemplate = new PaymentTemplate
         {
             Id = id,
-            Name = updatedLoanTemplate.Name,
-            Amount = updatedLoanTemplate.Amount,
-            Description = updatedLoanTemplate.Description ?? string.Empty
+            Name = updatedPaymentTemplate.Name,
+            Amount = updatedPaymentTemplate.Amount,
+            Description = updatedPaymentTemplate.Description ?? string.Empty
         };
 
         var valueRange = new ValueRange

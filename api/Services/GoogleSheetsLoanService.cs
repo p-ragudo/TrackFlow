@@ -185,9 +185,9 @@ public class GoogleSheetsLoanService
     public async Task<bool> DeleteLoanByIdAsync(
         string spreadsheetId,
         string sheet,
-        int id,
         string columnStart,
-        string columnEnd
+        string columnEnd,
+        int id
     )
     {
         var loans = await GetLoansAsync(spreadsheetId, sheet, columnStart, columnEnd);
@@ -261,13 +261,14 @@ public class GoogleSheetsLoanService
         string sheet,
         string columnStart,
         string columnEnd,
+        string counterSheet,
         string rowCell,
         string idCell,
         string name,
         decimal amount,
         string? description = null)
     {
-        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{rowCell}");
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{counterSheet}!{rowCell}");
         if (nextRowCell == null)
         {
             Console.WriteLine("Failed to append loan template. The next row counter could not be fetched.");
@@ -279,7 +280,7 @@ public class GoogleSheetsLoanService
             return false;
         }
 
-        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{idCell}");
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{counterSheet}!{idCell}");
         if (nextIdCell == null)
         {
             Console.WriteLine("Failed to append loan template. The next id counter could not be fetched.");
