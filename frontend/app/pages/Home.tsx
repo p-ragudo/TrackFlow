@@ -116,7 +116,7 @@ export default function Home() {
 
     const fetchTodayTotal = async () => {
         try {
-            const response = await api.get<TodayTotalResponse>(`/api/v1/expenses/today/total?spreadsheetid=${spreadsheetId}&sheet=expenses`);
+            const response = await api.get<TodayTotalResponse>(`/api/v1/expenses/today/total?spreadsheetid=${spreadsheetId}&sheet=2026_expenses`);
             setTodayTotal(response.total)
         } catch (error) {
             const messagePrefix = "Error in fetchTodayTotal"
@@ -220,7 +220,7 @@ export default function Home() {
                         }
                     case 'templates':
                         return {
-                            endpoint: `/api/v1/templates?spreadsheetid=${spreadsheetId}&sheet=templates`,
+                            endpoint: `/api/v1/expensetemplates?spreadsheetid=${spreadsheetId}&sheet=templates`,
                         }
                     case 'savings':
                         return{

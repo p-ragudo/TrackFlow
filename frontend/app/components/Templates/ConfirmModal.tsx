@@ -86,7 +86,7 @@ export default function ConfirmModal({
                 }
 
                 setModalVisible(false)
-
+                
                 await api.post(
                     `/api/v1/expenses?spreadsheetid=${activeSpreadsheetId}&sheet=expenses`,
                     payload

@@ -28,8 +28,6 @@ public class GoogleSheetsExpensesService
         string spreadsheetId,
         string sheet,
         string name,
-        string rowCell,
-        string idCell,
         string group,
         string category,
         string tag,
@@ -41,25 +39,25 @@ public class GoogleSheetsExpensesService
         string completeSheet = $"{today:yyyy}_{sheet}";
         Console.WriteLine(completeSheet);
 
-        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!{rowCell}");
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!M2");
         if (nextRowCell == null)
         {
             Console.WriteLine("Failed to append expense. The next row counter could not be fetched.");
             return false;
         }
-        if (int.TryParse(nextRowCell, out int nextRow))
+        if (!int.TryParse(nextRowCell, out int nextRow))
         {
             Console.WriteLine("Failed to append expense. The next row counter could not be parsed.");
             return false;
         }
 
-        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!{idCell}");
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!N2");
         if (nextRowCell == null)
         {
             Console.WriteLine("Failed to append expense. The next row id could not be fetched.");
             return false;
         }
-        if (int.TryParse(nextIdCell, out int nextId))
+        if (!int.TryParse(nextIdCell, out int nextId))
         {
             Console.WriteLine("Failed to append expense. The next row id could not be parsed.");
             return false;
@@ -111,31 +109,29 @@ public class GoogleSheetsExpensesService
         string spreadsheetId,
         string sheet,
         string name,
-        string rowCell,
-        string idCell,
         string group,
         string category,
         string tag,
         decimal amount,
         string? description = null)
     {
-        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{rowCell}");
+        string? nextRowCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!I2");
         if (nextRowCell == null) {
             Console.WriteLine("Failed to append template. The next row counter could not be fetched.");
             return false;
         }
-        if (int.TryParse(nextRowCell, out int nextRow))
+        if (!int.TryParse(nextRowCell, out int nextRow))
         {
             Console.WriteLine("Failed to append template. The next row counter could not be parsed.");
             return false;
         }
 
-        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!{idCell}");
+        string? nextIdCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!J2");
         if (nextIdCell == null) {
             Console.WriteLine("Failed to append template. The next id counter could not be fetched.");
             return false;
         }
-        if (int.TryParse(nextIdCell, out int nextId))
+        if (!int.TryParse(nextIdCell, out int nextId))
         {
             Console.WriteLine("Failed to append template. The next id counter could not be parsed.");
             return false;
@@ -355,16 +351,13 @@ public class GoogleSheetsExpensesService
 
     public async Task<decimal?> GetTodayTotal(string spreadsheetId, string sheet)
     {
-        DateOnly today = SheetUtils.GetDateLocal();
-        string completeSheet = $"{today:yyyy}_{sheet}";
-
-        string? todayTotalCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{completeSheet}!O2");
+        string? todayTotalCell = await SheetUtils.GetCellStringAsync(_sheetService, spreadsheetId, $"{sheet}!O2");
         if (todayTotalCell == null)
         {
             Console.WriteLine("Failed to get today's total. The cell could not be fetched.");
             return null;
         }
-        if (decimal.TryParse(todayTotalCell, out decimal todayTotal))
+        if (!decimal.TryParse(todayTotalCell, out decimal todayTotal))
         {
             Console.WriteLine("Failed to get today's total. The cell could not be parsed.");
             return null;

@@ -3,8 +3,6 @@ namespace api.Dto;
 public record CreateExpenseRequest
 (
     string Name,
-    string RowCell,
-    string IdCell,
     string Group,
     string Category,
     string Tag,
@@ -15,8 +13,6 @@ public record CreateExpenseRequest
 public record CreateTemplateRequest
 (
     string Name,
-    string RowCell,
-    string IdCell,
     string Group,
     string Category,
     string Tag,

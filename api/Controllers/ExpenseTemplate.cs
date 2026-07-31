@@ -54,8 +54,6 @@ public class ExpenseTemplatesController : ControllerBase
                 spreadsheetId,
                 sheet,
                 request.Name,
-                request.RowCell,
-                request.IdCell,
                 request.Group,
                 request.Category,
                 request.Tag,
